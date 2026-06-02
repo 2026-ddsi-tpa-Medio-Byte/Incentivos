@@ -4,10 +4,25 @@ import java.util.List;
 
 import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.DonadorStatsDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.EstadoDonadorEnum;
+import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.CategoriaDonadorEnum;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 
+@Entity
+@Table(name = "donadores")
 public class Donador {
 
+    @Id
+    @Column(name = "id")
     private String id;
     private String nombre;
     private String apellido;
@@ -18,6 +33,11 @@ public class Donador {
     private EstadoDonadorEnum estado;
     private String categoria;
     private String misionActualID;
+    @ElementCollection
+    @Enumerated(EnumType.STRING)
+    private java.util.List<CategoriaDonadorEnum> categorias;
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "donador_id")
     private List<Insignia> insignias;
 
     public Donador(String id, String nombre, String apellido, Integer edad, String email, String nroDocumento,
@@ -49,6 +69,11 @@ public class Donador {
         this.categoria = null;
         this.misionActualID = null;
         this.insignias = new java.util.ArrayList<>();
+        this.categorias = new java.util.ArrayList<>();
+    }
+
+    // JPA requires a no-arg constructor
+    public Donador() {
     }
 
 
@@ -170,5 +195,13 @@ public class Donador {
     }
     public void agregarInsignia(Insignia insignia) {
         this.insignias.add(insignia);
+    }
+    public java.util.List<CategoriaDonadorEnum> getCategorias() {
+        return categorias;
+    }
+
+    public void agregarCategoria(CategoriaDonadorEnum categoria) {
+        if (this.categorias == null) this.categorias = new java.util.ArrayList<>();
+        this.categorias.add(categoria);
     }
 }

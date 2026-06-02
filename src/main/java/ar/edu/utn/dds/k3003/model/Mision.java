@@ -2,14 +2,31 @@ package ar.edu.utn.dds.k3003.model;
 
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.CategoriaDonadorEnum;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.TipoMisionEnum;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
+@Entity
+@Table(name = "misiones")
 public class Mision {
+    @Id
+    @Column(name = "id")
     private String id;
     private String nombre;
     private String insigniaID;
+    @Enumerated(EnumType.STRING)
     private CategoriaDonadorEnum categoriaInicio;
+    @Enumerated(EnumType.STRING)
     private CategoriaDonadorEnum categoriaFin;
+    @Enumerated(EnumType.STRING)
     private TipoMisionEnum tipo;
+
+    // JPA no-arg constructor
+    public Mision() {
+    }
 
     public Mision(String id, String nombre, String insigniaID, CategoriaDonadorEnum categoriaInicio,
             CategoriaDonadorEnum categoriaFin, TipoMisionEnum tipo) {

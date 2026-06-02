@@ -15,17 +15,17 @@ import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonadoresYEntidades;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaIncentivos;
 import ar.edu.utn.dds.k3003.model.Donador;
 import ar.edu.utn.dds.k3003.model.Insignia;
-import ar.edu.utn.dds.k3003.repositories.RepoDonadores;
+import ar.edu.utn.dds.k3003.repositories.DonadorRepository;
 
 public class Fachada_DonadoresEntidades implements FachadaDonadoresYEntidades  {
 
     private List<Donador> donadores;
-    private RepoDonadores repoDonadores;
+    private DonadorRepository.RepoDonadores repoDonadores;
 
 
     public Fachada_DonadoresEntidades() {
         this.donadores = new ArrayList<>();
-        this.repoDonadores = new RepoDonadores(null);
+        this.repoDonadores = new DonadorRepository.RepoDonadores(null);
     }
     @Override
     public DonadorDTO agregarDonador(DonadorDTO donadorDTO) {

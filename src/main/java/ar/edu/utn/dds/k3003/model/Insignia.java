@@ -1,9 +1,23 @@
 package ar.edu.utn.dds.k3003.model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "insignias")
 public class Insignia {
+    @Id
+    @Column(name = "id")
     String id;
     String nombre;
     String descripcion;
+
+    // JPA no-arg constructor
+    public Insignia() {
+    }
+
     public Insignia(String id, String nombre, String descripcion) {
         this.id = id;
         this.nombre = nombre;
