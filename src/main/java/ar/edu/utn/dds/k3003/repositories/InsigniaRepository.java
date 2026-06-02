@@ -49,3 +49,5 @@ public interface InsigniaRepository extends JpaRepository<Insignia, String> {
       this.insignias.add(nueva);
       return nueva;
     }
+  }
+}
