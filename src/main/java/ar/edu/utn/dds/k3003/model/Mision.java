@@ -1,7 +1,7 @@
 package ar.edu.utn.dds.k3003.model;
 
-import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.CategoriaDonadorEnum;
-import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.TipoMisionEnum;
+import ar.edu.utn.dds.k3003.dtos.incentivos.CategoriaDonadorEnum;
+import ar.edu.utn.dds.k3003.dtos.incentivos.TipoMisionEnum;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

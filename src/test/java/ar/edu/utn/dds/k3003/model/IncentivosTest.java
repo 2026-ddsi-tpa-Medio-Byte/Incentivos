@@ -5,10 +5,10 @@ import static org.mockito.Mockito.when;
 
 import ar.edu.utn.dds.k3003.Fachada;
 import ar.edu.utn.dds.k3003.controllers.IncentivosController;
-import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.CategoriaDonadorEnum;
-import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.InsigniaDTO;
-import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.MisionDTO;
-import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.TipoMisionEnum;
+import ar.edu.utn.dds.k3003.dtos.incentivos.CategoriaDonadorEnum;
+import ar.edu.utn.dds.k3003.dtos.incentivos.InsigniaDTO;
+import ar.edu.utn.dds.k3003.dtos.incentivos.MisionDTO;
+import ar.edu.utn.dds.k3003.dtos.incentivos.TipoMisionEnum;
 import ar.edu.utn.dds.k3003.model.Insignia;
 import ar.edu.utn.dds.k3003.model.Mision;
 import java.util.List;

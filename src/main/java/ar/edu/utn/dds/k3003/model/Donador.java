@@ -2,9 +2,9 @@ package ar.edu.utn.dds.k3003.model;
 
 import java.util.List;
 
-import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.DonadorStatsDTO;
-import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.EstadoDonadorEnum;
-import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.CategoriaDonadorEnum;
+import ar.edu.utn.dds.k3003.dtos.donadoresYEntidades.DonadorStatsDTO;
+import ar.edu.utn.dds.k3003.dtos.donadoresYEntidades.EstadoDonadorEnum;
+import ar.edu.utn.dds.k3003.dtos.incentivos.CategoriaDonadorEnum;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.EnumType;

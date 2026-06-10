@@ -1,21 +1,17 @@
 package ar.edu.utn.dds.k3003;
 
-import ar.edu.utn.dds.k3003.catedra.dtos.donaciones.DonacionDTO;
-import ar.edu.utn.dds.k3003.catedra.dtos.donaciones.EstadoDonacionEnum;
-import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.CategoriaDonadorEnum;
-import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.InsigniaDTO;
-import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.MisionDTO;
-import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonaciones;
-import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonadoresYEntidades;
-import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaIncentivos;
-
-
+import ar.edu.utn.dds.k3003.dtos.donaciones.DonacionDTO;
+import ar.edu.utn.dds.k3003.dtos.donaciones.EstadoDonacionEnum;
+import ar.edu.utn.dds.k3003.dtos.incentivos.CategoriaDonadorEnum;
+import ar.edu.utn.dds.k3003.dtos.incentivos.InsigniaDTO;
+import ar.edu.utn.dds.k3003.dtos.incentivos.MisionDTO;
+import ar.edu.utn.dds.k3003.fachadas.FachadaDonaciones;
+import ar.edu.utn.dds.k3003.fachadas.FachadaDonadoresYEntidades;
+import ar.edu.utn.dds.k3003.fachadas.FachadaIncentivos;
+import ar.edu.utn.dds.k3003.services.MisionEvaluatorService;
 import ar.edu.utn.dds.k3003.model.Insignia;
 import ar.edu.utn.dds.k3003.model.Mision;
 import org.springframework.stereotype.Service;
-import ar.edu.utn.dds.k3003.repositories.DonadorRepository;
-import ar.edu.utn.dds.k3003.repositories.InsigniaRepository;
-import ar.edu.utn.dds.k3003.repositories.MisionRepository;
 import ar.edu.utn.dds.k3003.repositories.DonadorRepository;
 import ar.edu.utn.dds.k3003.repositories.InsigniaRepository;
 import ar.edu.utn.dds.k3003.repositories.MisionRepository;
@@ -40,6 +36,7 @@ public class Fachada implements FachadaIncentivos {
   private boolean useJpa = false;
   private FachadaDonadoresYEntidades fachadaDonadoresYEntidades;
   private FachadaDonaciones fachadaDonaciones;
+  private MisionEvaluatorService misionEvaluatorService;
 
   public void setFachadaDonaciones(FachadaDonaciones fachadaDonaciones) {
     this.fachadaDonaciones = fachadaDonaciones;
@@ -113,11 +110,13 @@ public class Fachada implements FachadaIncentivos {
   }
 
   // Constructor for Spring to inject JPA repositories (will set useJpa=true)
-  public Fachada(DonadorRepository donadorJpaRepository, InsigniaRepository insigniaJpaRepository, MisionRepository misionJpaRepository) {
+  public Fachada(DonadorRepository donadorJpaRepository, InsigniaRepository insigniaJpaRepository, MisionRepository misionJpaRepository, FachadaDonaciones fachadaDonaciones, MisionEvaluatorService misionEvaluatorService) {
     this(); // initialize fallbacks
     this.donadorJpaRepository = donadorJpaRepository;
     this.insigniaJpaRepository = insigniaJpaRepository;
     this.misionJpaRepository = misionJpaRepository;
+    this.fachadaDonaciones = fachadaDonaciones;
+    this.misionEvaluatorService = misionEvaluatorService;
     this.useJpa = true;
   }
   public Insignia eliminarInsignia(Insignia insignia){
@@ -312,23 +311,28 @@ public class Fachada implements FachadaIncentivos {
       MisionDTO misionActual = this.getMisionEnCursoDeDonador(donadorID);
 
       if (misionActual != null) {
-        if (misionActual.insigniaID() != null) {
-          Insignia insigniaDeMision = this.repoInsignias.getInsignias().stream().filter(i -> i.getId().equals(misionActual.insigniaID())).findFirst().orElse(null);
-          if (insigniaDeMision != null) {
-            InsigniaDTO insigniaDTO = new InsigniaDTO(insigniaDeMision.getId(), insigniaDeMision.getNombre(), insigniaDeMision.getDescripcion());
-            this.asignarInsigniaADonador(donadorID, insigniaDTO);
-          }
-        }
+        // Evaluar si el donador cumple con la misión según su tipo
+        boolean cumpleMision = misionEvaluatorService.evaluarMision(donadorID, misionActual.tipo());
         
-        if (misionActual.categoriaFin() != null) {
-          fachadaDonadoresYEntidades.modifcarCategoria(donadorID, misionActual.categoriaFin().toString());
-          // Persistir la categoría en el repositorio de donadores
-          if (useJpa) {
-            var donador = donadorJpaRepository.findById(donadorID).orElseThrow(() -> new RuntimeException("Donador no encontrado"));
-            donador.agregarCategoria(misionActual.categoriaFin());
-            donadorJpaRepository.save(donador);
-          } else {
-            repoDonadores.agregarCategoriADonador(donadorID, misionActual.categoriaFin());
+        if (cumpleMision) {
+          if (misionActual.insigniaID() != null) {
+            Insignia insigniaDeMision = this.repoInsignias.getInsignias().stream().filter(i -> i.getId().equals(misionActual.insigniaID())).findFirst().orElse(null);
+            if (insigniaDeMision != null) {
+              InsigniaDTO insigniaDTO = new InsigniaDTO(insigniaDeMision.getId(), insigniaDeMision.getNombre(), insigniaDeMision.getDescripcion());
+              this.asignarInsigniaADonador(donadorID, insigniaDTO);
+            }
+          }
+          
+          if (misionActual.categoriaFin() != null) {
+            fachadaDonadoresYEntidades.modifcarCategoria(donadorID, misionActual.categoriaFin().toString());
+            // Persistir la categoría en el repositorio de donadores
+            if (useJpa) {
+              var donador = donadorJpaRepository.findById(donadorID).orElseThrow(() -> new RuntimeException("Donador no encontrado"));
+              donador.agregarCategoria(misionActual.categoriaFin());
+              donadorJpaRepository.save(donador);
+            } else {
+              repoDonadores.agregarCategoriADonador(donadorID, misionActual.categoriaFin());
+            }
           }
         }
       }

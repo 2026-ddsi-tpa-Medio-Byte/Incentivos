@@ -1,6 +1,6 @@
 package ar.edu.utn.dds.k3003.repositories;
 
-import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.CategoriaDonadorEnum;
+import ar.edu.utn.dds.k3003.dtos.incentivos.CategoriaDonadorEnum;
 import ar.edu.utn.dds.k3003.model.Donador;
 import lombok.val;
 import org.springframework.data.jpa.repository.JpaRepository;

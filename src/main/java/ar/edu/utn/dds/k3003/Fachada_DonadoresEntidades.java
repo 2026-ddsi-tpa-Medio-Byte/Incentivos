@@ -4,15 +4,15 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 
-import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.DonadorDTO;
-import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.DonadorStatsDTO;
-import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.EntidadBeneficaDTO;
-import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.EstadoDonadorEnum;
-import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.NecesidadMaterialDTO;
-import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.QuejaDTO;
-import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.InsigniaDTO;
-import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonadoresYEntidades;
-import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaIncentivos;
+import ar.edu.utn.dds.k3003.dtos.donadoresYEntidades.DonadorDTO;
+import ar.edu.utn.dds.k3003.dtos.donadoresYEntidades.DonadorStatsDTO;
+import ar.edu.utn.dds.k3003.dtos.donadoresYEntidades.EntidadBeneficaDTO;
+import ar.edu.utn.dds.k3003.dtos.donadoresYEntidades.EstadoDonadorEnum;
+import ar.edu.utn.dds.k3003.dtos.donadoresYEntidades.NecesidadMaterialDTO;
+import ar.edu.utn.dds.k3003.dtos.donadoresYEntidades.QuejaDTO;
+import ar.edu.utn.dds.k3003.dtos.incentivos.InsigniaDTO;
+import ar.edu.utn.dds.k3003.fachadas.FachadaDonadoresYEntidades;
+import ar.edu.utn.dds.k3003.fachadas.FachadaIncentivos;
 import ar.edu.utn.dds.k3003.model.Donador;
 import ar.edu.utn.dds.k3003.model.Insignia;
 import ar.edu.utn.dds.k3003.repositories.DonadorRepository;
