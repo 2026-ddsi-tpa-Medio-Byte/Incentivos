@@ -82,6 +82,8 @@ public class Donador {
     }
 
 
+    @jakarta.persistence.Transient
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public Donador getDonadorDTO() {
         return this;
     }

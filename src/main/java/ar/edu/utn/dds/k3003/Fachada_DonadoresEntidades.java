@@ -25,7 +25,7 @@ public class Fachada_DonadoresEntidades implements FachadaDonadoresYEntidades  {
 
     public Fachada_DonadoresEntidades() {
         this.donadores = new ArrayList<>();
-        this.repoDonadores = new DonadorRepository.RepoDonadores(null);
+        this.repoDonadores = new DonadorRepository.RepoDonadores(new ArrayList<>());
     }
     @Override
     public DonadorDTO agregarDonador(DonadorDTO donadorDTO) {

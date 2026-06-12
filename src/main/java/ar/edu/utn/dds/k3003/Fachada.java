@@ -11,6 +11,7 @@ import ar.edu.utn.dds.k3003.fachadas.FachadaIncentivos;
 import ar.edu.utn.dds.k3003.services.MisionEvaluatorService;
 import ar.edu.utn.dds.k3003.model.Insignia;
 import ar.edu.utn.dds.k3003.model.Mision;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ar.edu.utn.dds.k3003.repositories.DonadorRepository;
 import ar.edu.utn.dds.k3003.repositories.InsigniaRepository;
@@ -110,6 +111,7 @@ public class Fachada implements FachadaIncentivos {
   }
 
   // Constructor for Spring to inject JPA repositories (will set useJpa=true)
+  @Autowired
   public Fachada(DonadorRepository donadorJpaRepository, InsigniaRepository insigniaJpaRepository, MisionRepository misionJpaRepository, FachadaDonaciones fachadaDonaciones, MisionEvaluatorService misionEvaluatorService) {
     this(); // initialize fallbacks
     this.donadorJpaRepository = donadorJpaRepository;
