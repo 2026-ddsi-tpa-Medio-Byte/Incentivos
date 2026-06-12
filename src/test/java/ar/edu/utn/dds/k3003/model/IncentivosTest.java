@@ -9,8 +9,6 @@ import ar.edu.utn.dds.k3003.dtos.incentivos.CategoriaDonadorEnum;
 import ar.edu.utn.dds.k3003.dtos.incentivos.InsigniaDTO;
 import ar.edu.utn.dds.k3003.dtos.incentivos.MisionDTO;
 import ar.edu.utn.dds.k3003.dtos.incentivos.TipoMisionEnum;
-import ar.edu.utn.dds.k3003.model.Insignia;
-import ar.edu.utn.dds.k3003.model.Mision;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,12 +18,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 import org.junit.jupiter.api.DisplayName;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import ar.edu.utn.dds.k3003.repositories.DonadorRepository;
-import ar.edu.utn.dds.k3003.repositories.InsigniaRepository;
-import ar.edu.utn.dds.k3003.repositories.MisionRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @ExtendWith(MockitoExtension.class)
 public class IncentivosTest {

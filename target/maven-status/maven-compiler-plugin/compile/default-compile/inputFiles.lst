@@ -35,8 +35,11 @@ C:\Users\Wency\Incentivos\src\main\java\ar\edu\utn\dds\k3003\Fachada_DonadoresEn
 C:\Users\Wency\Incentivos\src\main\java\ar\edu\utn\dds\k3003\fachadas\FachadaDonaciones.java
 C:\Users\Wency\Incentivos\src\main\java\ar\edu\utn\dds\k3003\fachadas\FachadaDonacionesImpl.java
 C:\Users\Wency\Incentivos\src\main\java\ar\edu\utn\dds\k3003\fachadas\FachadaDonadoresYEntidades.java
+C:\Users\Wency\Incentivos\src\main\java\ar\edu\utn\dds\k3003\fachadas\FachadaDonadoresYEntidadesImpl.java
 C:\Users\Wency\Incentivos\src\main\java\ar\edu\utn\dds\k3003\fachadas\FachadaIncentivos.java
 C:\Users\Wency\Incentivos\src\main\java\ar\edu\utn\dds\k3003\fachadas\FachadaLogistica.java
+C:\Users\Wency\Incentivos\src\main\java\ar\edu\utn\dds\k3003\fachadas\FachadaLogisticaImpl.java
+C:\Users\Wency\Incentivos\src\main\java\ar\edu\utn\dds\k3003\logging\DatadogHttpAppender.java
 C:\Users\Wency\Incentivos\src\main\java\ar\edu\utn\dds\k3003\model\Donador.java
 C:\Users\Wency\Incentivos\src\main\java\ar\edu\utn\dds\k3003\model\Insignia.java
 C:\Users\Wency\Incentivos\src\main\java\ar\edu\utn\dds\k3003\model\Mision.java

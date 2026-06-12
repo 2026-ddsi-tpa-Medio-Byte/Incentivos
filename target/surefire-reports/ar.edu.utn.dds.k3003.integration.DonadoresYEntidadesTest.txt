@@ -1,0 +1,94 @@
+-------------------------------------------------------------------------------
+Test set: ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest
+-------------------------------------------------------------------------------
+Tests run: 8, Failures: 0, Errors: 6, Skipped: 0, Time elapsed: 3.151 s <<< FAILURE! -- in ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest
+ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testModificarEstadoYCategoria -- Time elapsed: 1.432 s <<< ERROR!
+org.springframework.web.client.HttpClientErrorException$BadRequest: 400 Bad Request on POST request for "https://donadoresyentidadesv2.onrender.com/donadores": "Ya existe un donador con ese ID"
+	at org.springframework.web.client.HttpClientErrorException.create(HttpClientErrorException.java:103)
+	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:186)
+	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:147)
+	at org.springframework.web.client.RestTemplate.handleResponse(RestTemplate.java:953)
+	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:902)
+	at org.springframework.web.client.RestTemplate.execute(RestTemplate.java:801)
+	at org.springframework.web.client.RestTemplate.postForObject(RestTemplate.java:518)
+	at ar.edu.utn.dds.k3003.fachadas.FachadaDonadoresYEntidadesImpl.agregarDonador(FachadaDonadoresYEntidadesImpl.java:43)
+	at ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testModificarEstadoYCategoria(DonadoresYEntidadesTest.java:120)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+
+ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testNecesidades -- Time elapsed: 0.318 s <<< ERROR!
+org.springframework.web.client.HttpClientErrorException$BadRequest: 400 Bad Request on POST request for "https://donadoresyentidadesv2.onrender.com/entidades": "Ya existe una entidad con ese ID"
+	at org.springframework.web.client.HttpClientErrorException.create(HttpClientErrorException.java:103)
+	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:186)
+	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:147)
+	at org.springframework.web.client.RestTemplate.handleResponse(RestTemplate.java:953)
+	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:902)
+	at org.springframework.web.client.RestTemplate.execute(RestTemplate.java:801)
+	at org.springframework.web.client.RestTemplate.postForObject(RestTemplate.java:518)
+	at ar.edu.utn.dds.k3003.fachadas.FachadaDonadoresYEntidadesImpl.agregarEntidad(FachadaDonadoresYEntidadesImpl.java:59)
+	at ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testNecesidades(DonadoresYEntidadesTest.java:150)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+
+ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testPuedeDonarYEstadisticas -- Time elapsed: 0.244 s <<< ERROR!
+org.springframework.web.client.HttpClientErrorException$BadRequest: 400 Bad Request on POST request for "https://donadoresyentidadesv2.onrender.com/donadores": "Ya existe un donador con ese ID"
+	at org.springframework.web.client.HttpClientErrorException.create(HttpClientErrorException.java:103)
+	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:186)
+	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:147)
+	at org.springframework.web.client.RestTemplate.handleResponse(RestTemplate.java:953)
+	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:902)
+	at org.springframework.web.client.RestTemplate.execute(RestTemplate.java:801)
+	at org.springframework.web.client.RestTemplate.postForObject(RestTemplate.java:518)
+	at ar.edu.utn.dds.k3003.fachadas.FachadaDonadoresYEntidadesImpl.agregarDonador(FachadaDonadoresYEntidadesImpl.java:43)
+	at ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testPuedeDonarYEstadisticas(DonadoresYEntidadesTest.java:108)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+
+ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testAgregarYBuscarDonador -- Time elapsed: 0.229 s <<< ERROR!
+org.springframework.web.client.HttpClientErrorException$BadRequest: 400 Bad Request on POST request for "https://donadoresyentidadesv2.onrender.com/donadores": "Ya existe un donador con ese ID"
+	at org.springframework.web.client.HttpClientErrorException.create(HttpClientErrorException.java:103)
+	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:186)
+	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:147)
+	at org.springframework.web.client.RestTemplate.handleResponse(RestTemplate.java:953)
+	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:902)
+	at org.springframework.web.client.RestTemplate.execute(RestTemplate.java:801)
+	at org.springframework.web.client.RestTemplate.postForObject(RestTemplate.java:518)
+	at ar.edu.utn.dds.k3003.fachadas.FachadaDonadoresYEntidadesImpl.agregarDonador(FachadaDonadoresYEntidadesImpl.java:43)
+	at ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testAgregarYBuscarDonador(DonadoresYEntidadesTest.java:56)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+
+ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testQuejas -- Time elapsed: 0.212 s <<< ERROR!
+org.springframework.web.client.HttpClientErrorException$BadRequest: 400 Bad Request on POST request for "https://donadoresyentidadesv2.onrender.com/donadores": "Ya existe un donador con ese ID"
+	at org.springframework.web.client.HttpClientErrorException.create(HttpClientErrorException.java:103)
+	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:186)
+	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:147)
+	at org.springframework.web.client.RestTemplate.handleResponse(RestTemplate.java:953)
+	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:902)
+	at org.springframework.web.client.RestTemplate.execute(RestTemplate.java:801)
+	at org.springframework.web.client.RestTemplate.postForObject(RestTemplate.java:518)
+	at ar.edu.utn.dds.k3003.fachadas.FachadaDonadoresYEntidadesImpl.agregarDonador(FachadaDonadoresYEntidadesImpl.java:43)
+	at ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testQuejas(DonadoresYEntidadesTest.java:133)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+
+ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testAgregarYBuscarEntidad -- Time elapsed: 0.223 s <<< ERROR!
+org.springframework.web.client.HttpClientErrorException$BadRequest: 400 Bad Request on POST request for "https://donadoresyentidadesv2.onrender.com/entidades": "Ya existe una entidad con ese ID"
+	at org.springframework.web.client.HttpClientErrorException.create(HttpClientErrorException.java:103)
+	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:186)
+	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:147)
+	at org.springframework.web.client.RestTemplate.handleResponse(RestTemplate.java:953)
+	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:902)
+	at org.springframework.web.client.RestTemplate.execute(RestTemplate.java:801)
+	at org.springframework.web.client.RestTemplate.postForObject(RestTemplate.java:518)
+	at ar.edu.utn.dds.k3003.fachadas.FachadaDonadoresYEntidadesImpl.agregarEntidad(FachadaDonadoresYEntidadesImpl.java:59)
+	at ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testAgregarYBuscarEntidad(DonadoresYEntidadesTest.java:87)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+
