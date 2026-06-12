@@ -4,6 +4,7 @@ import ar.edu.utn.dds.k3003.Fachada;
 import ar.edu.utn.dds.k3003.dtos.incentivos.InsigniaDTO;
 import ar.edu.utn.dds.k3003.dtos.incentivos.MisionDTO;
 import java.util.List;
+import java.util.NoSuchElementException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,6 +43,7 @@ public class IncentivosController {
     return ResponseEntity.ok(dto);
   }
 
+
   @PostMapping("/misiones")
   public ResponseEntity<MisionDTO> crearMision(@RequestBody MisionDTO dto) {
     MisionDTO creada = fachada.agregarMision(dto);
@@ -58,5 +60,23 @@ public class IncentivosController {
   public ResponseEntity<MisionDTO> obtenerMision(@PathVariable String id) {
     MisionDTO dto = fachada.getMisionById(id);
     return ResponseEntity.ok(dto);
+  }
+
+  @GetMapping("/donadores/{donadorID}/insignias")
+  public ResponseEntity<List<InsigniaDTO>> getInsigniasDeDonador(@PathVariable String donadorID) {
+    try {
+      return ResponseEntity.ok(fachada.getInsigniasDeDonador(donadorID));
+    } catch (NoSuchElementException e) {
+      return ResponseEntity.ok(List.of());
+    }
+  }
+
+  @GetMapping("/donadores/{donadorID}/mision-actual")
+  public ResponseEntity<MisionDTO> getMisionEnCursoDeDonador(@PathVariable String donadorID) {
+    try {
+      return ResponseEntity.ok(fachada.getMisionEnCursoDeDonador(donadorID));
+    } catch (NoSuchElementException e) {
+      return ResponseEntity.notFound().build();
+    }
   }
 }
