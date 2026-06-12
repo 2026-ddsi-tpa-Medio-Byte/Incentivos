@@ -163,7 +163,7 @@ public class Fachada implements FachadaIncentivos {
   public List<InsigniaDTO> getInsigniasDeDonador(String donadorID) throws NoSuchElementException {
     if (useJpa) {
       var donadorOpt = donadorJpaRepository.findById(donadorID);
-      if (donadorOpt.isEmpty()) throw new RuntimeException("Donador no encontrado");
+      if (donadorOpt.isEmpty()) throw new NoSuchElementException("Donador no encontrado: " + donadorID);
       var insignias = donadorOpt.get().getInsignias();
       if (insignias == null || insignias.isEmpty()) throw new NoSuchElementException("No hay insignias para el donador " + donadorID);
       return insignias.stream().map(insignia -> new InsigniaDTO(insignia.getId(), insignia.getNombre(), insignia.getDescripcion())).toList();
@@ -188,7 +188,7 @@ public class Fachada implements FachadaIncentivos {
   public MisionDTO getMisionEnCursoDeDonador(String donadorID) {
     if (useJpa) {
       var donadorOpt = donadorJpaRepository.findById(donadorID);
-      if (donadorOpt.isEmpty()) throw new RuntimeException("Donador no encontrado");
+      if (donadorOpt.isEmpty()) throw new NoSuchElementException("Donador no encontrado: " + donadorID);
       String misionID = donadorOpt.get().getMisionActualID();
       if (misionID == null) throw new NoSuchElementException("No hay misión en curso para el donador " + donadorID);
       var misionOpt = misionJpaRepository.findById(misionID);
