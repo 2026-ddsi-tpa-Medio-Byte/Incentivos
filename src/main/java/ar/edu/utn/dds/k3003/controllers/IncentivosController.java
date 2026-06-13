@@ -39,8 +39,11 @@ public class IncentivosController {
 
   @GetMapping("/insignias/{id}")
   public ResponseEntity<InsigniaDTO> obtenerInsignia(@PathVariable String id) {
-    InsigniaDTO dto = fachada.getInsigniaById(id);
-    return ResponseEntity.ok(dto);
+    try {
+      return ResponseEntity.ok(fachada.getInsigniaById(id));
+    } catch (NoSuchElementException e) {
+      return ResponseEntity.notFound().build();
+    }
   }
 
 
@@ -58,8 +61,11 @@ public class IncentivosController {
 
   @GetMapping("/misiones/{id}")
   public ResponseEntity<MisionDTO> obtenerMision(@PathVariable String id) {
-    MisionDTO dto = fachada.getMisionById(id);
-    return ResponseEntity.ok(dto);
+    try {
+      return ResponseEntity.ok(fachada.getMisionById(id));
+    } catch (NoSuchElementException e) {
+      return ResponseEntity.notFound().build();
+    }
   }
 
   @GetMapping("/donadores/{donadorID}/insignias")
