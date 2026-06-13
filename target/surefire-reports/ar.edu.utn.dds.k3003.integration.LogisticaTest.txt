@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
 Test set: ar.edu.utn.dds.k3003.integration.LogisticaTest
 -------------------------------------------------------------------------------
-Tests run: 5, Failures: 1, Errors: 1, Skipped: 0, Time elapsed: 3.010 s <<< FAILURE! -- in ar.edu.utn.dds.k3003.integration.LogisticaTest
-ar.edu.utn.dds.k3003.integration.LogisticaTest.testAgregarDepositoYGestionarDonacion -- Time elapsed: 1.713 s <<< ERROR!
-org.springframework.web.client.HttpServerErrorException$InternalServerError: 500 Internal Server Error on POST request for "https://logistica-i4rf.onrender.com/api/depositos": "<Map><timestamp>2026-06-11T23:34:27.465+00:00</timestamp><status>500</status><error>Internal Server Error</error><path>/api/depositos</path></Map>"
+Tests run: 5, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 1.128 s <<< FAILURE! -- in ar.edu.utn.dds.k3003.integration.LogisticaTest
+ar.edu.utn.dds.k3003.integration.LogisticaTest.testAgregarDepositoYGestionarDonacion -- Time elapsed: 0.309 s <<< ERROR!
+org.springframework.web.client.HttpServerErrorException$InternalServerError: 500 Internal Server Error on POST request for "https://logistica-i4rf.onrender.com/api/depositos": "Error interno: Identifier of entity 'ar.edu.utn.dds.k3003.zAlumno.entidades.Logistica.Deposito' must be manually assigned before calling 'persist()'"
 	at org.springframework.web.client.HttpServerErrorException.create(HttpServerErrorException.java:102)
 	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:189)
 	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:147)
@@ -16,28 +16,4 @@ org.springframework.web.client.HttpServerErrorException$InternalServerError: 500
 	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
-
-ar.edu.utn.dds.k3003.integration.LogisticaTest.testReportarEntrega -- Time elapsed: 0.222 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: Unexpected exception thrown: org.springframework.web.client.HttpClientErrorException$NotFound: 404 Not Found on POST request for "https://logistica-i4rf.onrender.com/api/asignaciones/reportar-entrega": "<Map><timestamp>2026-06-11T23:34:28.382+00:00</timestamp><status>404</status><error>Not Found</error><path>/api/asignaciones/reportar-entrega</path></Map>"
-	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:152)
-	at org.junit.jupiter.api.AssertDoesNotThrow.createAssertionFailedError(AssertDoesNotThrow.java:84)
-	at org.junit.jupiter.api.AssertDoesNotThrow.assertDoesNotThrow(AssertDoesNotThrow.java:53)
-	at org.junit.jupiter.api.AssertDoesNotThrow.assertDoesNotThrow(AssertDoesNotThrow.java:36)
-	at org.junit.jupiter.api.Assertions.assertDoesNotThrow(Assertions.java:3199)
-	at ar.edu.utn.dds.k3003.integration.LogisticaTest.testReportarEntrega(LogisticaTest.java:74)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
-	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
-	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
-Caused by: org.springframework.web.client.HttpClientErrorException$NotFound: 404 Not Found on POST request for "https://logistica-i4rf.onrender.com/api/asignaciones/reportar-entrega": "<Map><timestamp>2026-06-11T23:34:28.382+00:00</timestamp><status>404</status><error>Not Found</error><path>/api/asignaciones/reportar-entrega</path></Map>"
-	at org.springframework.web.client.HttpClientErrorException.create(HttpClientErrorException.java:112)
-	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:186)
-	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:147)
-	at org.springframework.web.client.RestTemplate.handleResponse(RestTemplate.java:953)
-	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:902)
-	at org.springframework.web.client.RestTemplate.execute(RestTemplate.java:801)
-	at org.springframework.web.client.RestTemplate.postForObject(RestTemplate.java:518)
-	at ar.edu.utn.dds.k3003.fachadas.FachadaLogisticaImpl.reportarEntrega(FachadaLogisticaImpl.java:103)
-	at ar.edu.utn.dds.k3003.integration.LogisticaTest.lambda$2(LogisticaTest.java:74)
-	at org.junit.jupiter.api.AssertDoesNotThrow.assertDoesNotThrow(AssertDoesNotThrow.java:49)
-	... 6 more
 

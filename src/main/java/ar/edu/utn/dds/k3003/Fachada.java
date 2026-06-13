@@ -13,7 +13,8 @@ import ar.edu.utn.dds.k3003.model.Insignia;
 import ar.edu.utn.dds.k3003.model.Mision;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ar.edu.utn.dds.k3003.repositories.DonadorRepository;
+import ar.edu.utn.dds.k3003.model.PerfilIncentivos;
+import ar.edu.utn.dds.k3003.repositories.PerfilIncentivosRepository;
 import ar.edu.utn.dds.k3003.repositories.InsigniaRepository;
 import ar.edu.utn.dds.k3003.repositories.MisionRepository;
 
@@ -30,8 +31,8 @@ public class Fachada implements FachadaIncentivos {
 
   private MisionRepository.RepoMisiones repoMisiones;
   private InsigniaRepository.RepoInsignias repoInsignias;
-  private DonadorRepository.RepoDonadores repoDonadores;
-  private DonadorRepository donadorJpaRepository;
+  private PerfilIncentivosRepository.RepoPerfiles repoPerfiles;
+  private PerfilIncentivosRepository perfilJpaRepository;
   private InsigniaRepository insigniaJpaRepository;
   private MisionRepository misionJpaRepository;
   private boolean useJpa = false;
@@ -107,14 +108,14 @@ public class Fachada implements FachadaIncentivos {
     this.fachadaDonadoresYEntidades = new Fachada_DonadoresEntidades();
     this.repoMisiones = new MisionRepository.RepoMisiones();
     this.repoInsignias = new InsigniaRepository.RepoInsignias();
-    this.repoDonadores = new DonadorRepository.RepoDonadores(new ArrayList<>());
+    this.repoPerfiles = new PerfilIncentivosRepository.RepoPerfiles();
   }
 
   // Constructor for Spring to inject JPA repositories (will set useJpa=true)
   @Autowired
-  public Fachada(DonadorRepository donadorJpaRepository, InsigniaRepository insigniaJpaRepository, MisionRepository misionJpaRepository, FachadaDonaciones fachadaDonaciones, MisionEvaluatorService misionEvaluatorService) {
+  public Fachada(PerfilIncentivosRepository perfilJpaRepository, InsigniaRepository insigniaJpaRepository, MisionRepository misionJpaRepository, FachadaDonaciones fachadaDonaciones, MisionEvaluatorService misionEvaluatorService) {
     this(); // initialize fallbacks
-    this.donadorJpaRepository = donadorJpaRepository;
+    this.perfilJpaRepository = perfilJpaRepository;
     this.insigniaJpaRepository = insigniaJpaRepository;
     this.misionJpaRepository = misionJpaRepository;
     this.fachadaDonaciones = fachadaDonaciones;
@@ -164,20 +165,19 @@ public class Fachada implements FachadaIncentivos {
   @Override
   public List<InsigniaDTO> getInsigniasDeDonador(String donadorID) throws NoSuchElementException {
     if (useJpa) {
-      var donadorOpt = donadorJpaRepository.findById(donadorID);
-      if (donadorOpt.isEmpty()) throw new NoSuchElementException("Donador no encontrado: " + donadorID);
-      var insignias = donadorOpt.get().getInsignias();
+      var perfilOpt = perfilJpaRepository.findById(donadorID);
+      var insignias = perfilOpt.map(PerfilIncentivos::getInsignias).orElse(null);
       if (insignias == null || insignias.isEmpty()) throw new NoSuchElementException("No hay insignias para el donador " + donadorID);
       return insignias.stream().map(insignia -> new InsigniaDTO(insignia.getId(), insignia.getNombre(), insignia.getDescripcion())).toList();
     }
 
-    if (!repoDonadores.getInsigniasPorDonador().containsKey(donadorID)) {
+    if (!repoPerfiles.getInsigniasPorDonador().containsKey(donadorID)) {
       var donador = fachadaDonadoresYEntidades.buscarDonadorPorID(donadorID);
       if (donador == null) {
         throw new RuntimeException("Donador no encontrado");
       }
     }
-    List<String> insigniasIDs = repoDonadores.getInsigniasPorDonador().get(donadorID);
+    List<String> insigniasIDs = repoPerfiles.getInsigniasPorDonador().get(donadorID);
     if (insigniasIDs == null || insigniasIDs.isEmpty()) {
       throw new NoSuchElementException("No hay insignias para el donador " + donadorID);
     }
@@ -189,9 +189,8 @@ public class Fachada implements FachadaIncentivos {
   @Override
   public MisionDTO getMisionEnCursoDeDonador(String donadorID) {
     if (useJpa) {
-      var donadorOpt = donadorJpaRepository.findById(donadorID);
-      if (donadorOpt.isEmpty()) throw new NoSuchElementException("Donador no encontrado: " + donadorID);
-      String misionID = donadorOpt.get().getMisionActualID();
+      var perfilOpt = perfilJpaRepository.findById(donadorID);
+      String misionID = perfilOpt.map(PerfilIncentivos::getMisionActualID).orElse(null);
       if (misionID == null) throw new NoSuchElementException("No hay misión en curso para el donador " + donadorID);
       var misionOpt = misionJpaRepository.findById(misionID);
       if (misionOpt.isEmpty()) throw new NoSuchElementException("Misión no encontrada");
@@ -199,14 +198,14 @@ public class Fachada implements FachadaIncentivos {
       return new MisionDTO(mision.getId(), mision.getNombre(), mision.getInsigniaID(), mision.getCategoriaInicio(), mision.getCategoriaFin(), mision.getTipo());
     }
 
-    if (!repoDonadores.getMisionesPorDonador().containsKey(donadorID)) {
+    if (!repoPerfiles.getMisionesPorDonador().containsKey(donadorID)) {
       var donador = fachadaDonadoresYEntidades.buscarDonadorPorID(donadorID);
       if (donador == null) {
         throw new RuntimeException("Donador no encontrado");
       }
       throw new NoSuchElementException("No hay misión en curso para el donador " + donadorID);
     }
-    String misionID = repoDonadores.getMisionesPorDonador().get(donadorID);
+    String misionID = repoPerfiles.getMisionesPorDonador().get(donadorID);
     if (misionID == null) {
       throw new NoSuchElementException("No hay misión en curso para el donador " + donadorID);
     }
@@ -227,39 +226,39 @@ public class Fachada implements FachadaIncentivos {
 
   public Map<String, List<CategoriaDonadorEnum>> getCategoriaDonadores() {
     if (useJpa) {
-      var all = donadorJpaRepository.findAll();
+      var all = perfilJpaRepository.findAll();
       var map = new java.util.HashMap<String, List<CategoriaDonadorEnum>>();
-      for (var d : all) map.put(d.getId(), d.getCategorias());
+      for (var p : all) map.put(p.getId(), p.getCategorias());
       return map;
     }
-    return repoDonadores.getCategoriasPorDonador();
+    return repoPerfiles.getCategoriasPorDonador();
   }
 
   public List<CategoriaDonadorEnum> getCategoriasDonador(String donadorID) {
     if (useJpa) {
-      return donadorJpaRepository.findById(donadorID).map(d -> d.getCategorias()).orElse(new ArrayList<>());
+      return perfilJpaRepository.findById(donadorID).map(PerfilIncentivos::getCategorias).orElse(new ArrayList<>());
     }
-    return repoDonadores.getCategoriasPorDonador().getOrDefault(donadorID, new ArrayList<>());
+    return repoPerfiles.getCategoriasPorDonador().getOrDefault(donadorID, new ArrayList<>());
   }
 
   public Map<String, String> getMisionDonadores() {
     if (useJpa) {
-      var all = donadorJpaRepository.findAll();
+      var all = perfilJpaRepository.findAll();
       var map = new java.util.HashMap<String, String>();
-      for (var d : all) map.put(d.getId(), d.getMisionActualID());
+      for (var p : all) map.put(p.getId(), p.getMisionActualID());
       return map;
     }
-    return repoDonadores.getMisionesPorDonador();
+    return repoPerfiles.getMisionesPorDonador();
   }
 
   public Map<String, List<String>> getInsigniasDonadores() {
     if (useJpa) {
-      var all = donadorJpaRepository.findAll();
+      var all = perfilJpaRepository.findAll();
       var map = new java.util.HashMap<String, List<String>>();
-      for (var d : all) map.put(d.getId(), d.getInsignias().stream().map(i -> i.getId()).toList());
+      for (var p : all) map.put(p.getId(), p.getInsignias().stream().map(Insignia::getId).toList());
       return map;
     }
-    return repoDonadores.getInsigniasPorDonador();
+    return repoPerfiles.getInsigniasPorDonador();
   }
 
   @Override
@@ -269,14 +268,14 @@ public class Fachada implements FachadaIncentivos {
     }
     fachadaDonadoresYEntidades.buscarDonadorPorID(donadorID);
     if (useJpa) {
-      var donador = donadorJpaRepository.findById(donadorID).orElseThrow(() -> new RuntimeException("Donador no encontrado"));
+      var perfil = perfilJpaRepository.findById(donadorID).orElseGet(() -> new PerfilIncentivos(donadorID));
       var misionOpt = misionJpaRepository.findById(misionDTO.id());
       Mision mision = misionOpt.orElseGet(() -> misionJpaRepository.save(new Mision(misionDTO.id(), misionDTO.nombre(), misionDTO.insigniaID(), misionDTO.categoriaInicio(), misionDTO.categoriaFin(), misionDTO.tipo())));
-      donador.setMisionActualID(mision.getId());
-      donadorJpaRepository.save(donador);
+      perfil.setMisionActualID(mision.getId());
+      perfilJpaRepository.save(perfil);
       return;
     }
-    repoDonadores.asignarMisionADonador(donadorID, misionDTO.id());
+    repoPerfiles.asignarMisionADonador(donadorID, misionDTO.id());
     if (repoMisiones.getMisionByID(misionDTO.id()) == null) {
       repoMisiones.agregarMision(new Mision(misionDTO.id(), misionDTO.nombre(), misionDTO.insigniaID(), misionDTO.categoriaInicio(), misionDTO.categoriaFin(), misionDTO.tipo()));
     }
@@ -292,17 +291,17 @@ public class Fachada implements FachadaIncentivos {
       // ensure insignia exists
       var insigniaOpt = insigniaJpaRepository.findById(insigniaDTO.id());
       Insignia insignia = insigniaOpt.orElseGet(() -> insigniaJpaRepository.save(new Insignia(insigniaDTO.id(), insigniaDTO.nombre(), insigniaDTO.descripcion())));
-      // add to donador
-      var donador = donadorJpaRepository.findById(donadorID).orElseThrow(() -> new RuntimeException("Donador no encontrado"));
-      if (donador.getInsignias() == null) donador.setInsignias(new java.util.ArrayList<>());
-      donador.getInsignias().add(insignia);
-      donadorJpaRepository.save(donador);
+      // add to perfil de incentivos del donador
+      var perfil = perfilJpaRepository.findById(donadorID).orElseGet(() -> new PerfilIncentivos(donadorID));
+      if (perfil.getInsignias() == null) perfil.setInsignias(new java.util.ArrayList<>());
+      perfil.getInsignias().add(insignia);
+      perfilJpaRepository.save(perfil);
       return;
     }
     if (repoInsignias.getInsignias().stream().noneMatch(i -> i.getId().equals(insigniaDTO.id()))) {
       repoInsignias.agregarInsignia(new Insignia(insigniaDTO.id(), insigniaDTO.nombre(), insigniaDTO.descripcion()));
     }
-    repoDonadores.asignarInsigniaADonador(donadorID, insigniaDTO.id());
+    repoPerfiles.asignarInsigniaADonador(donadorID, insigniaDTO.id());
   }
 
   @Override
@@ -315,7 +314,7 @@ public class Fachada implements FachadaIncentivos {
       if (misionActual != null) {
         // Evaluar si el donador cumple con la misión según su tipo
         boolean cumpleMision = misionEvaluatorService.evaluarMision(donadorID, misionActual.tipo());
-        
+
         if (cumpleMision) {
           if (misionActual.insigniaID() != null) {
             Insignia insigniaDeMision = this.repoInsignias.getInsignias().stream().filter(i -> i.getId().equals(misionActual.insigniaID())).findFirst().orElse(null);
@@ -324,16 +323,16 @@ public class Fachada implements FachadaIncentivos {
               this.asignarInsigniaADonador(donadorID, insigniaDTO);
             }
           }
-          
+
           if (misionActual.categoriaFin() != null) {
             fachadaDonadoresYEntidades.modifcarCategoria(donadorID, misionActual.categoriaFin().toString());
-            // Persistir la categoría en el repositorio de donadores
+            // Persistir la categoría en el perfil de incentivos del donador
             if (useJpa) {
-              var donador = donadorJpaRepository.findById(donadorID).orElseThrow(() -> new RuntimeException("Donador no encontrado"));
-              donador.agregarCategoria(misionActual.categoriaFin());
-              donadorJpaRepository.save(donador);
+              var perfil = perfilJpaRepository.findById(donadorID).orElseGet(() -> new PerfilIncentivos(donadorID));
+              perfil.agregarCategoria(misionActual.categoriaFin());
+              perfilJpaRepository.save(perfil);
             } else {
-              repoDonadores.agregarCategoriADonador(donadorID, misionActual.categoriaFin());
+              repoPerfiles.agregarCategoriADonador(donadorID, misionActual.categoriaFin());
             }
           }
         }

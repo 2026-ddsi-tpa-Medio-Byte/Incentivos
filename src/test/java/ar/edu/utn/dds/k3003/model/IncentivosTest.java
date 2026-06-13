@@ -184,50 +184,38 @@ public class IncentivosTest {
   }
 
   @Test
-  @DisplayName("Donador should be created with relationships")
-  void testDonadorPeristence() {
-    Donador donador = new Donador(
-        "donador-1",
-        "Juan",
-        "Pérez",
-        30,
-        "juan@example.com",
-        "12345678",
-        "Calle 123",
-        null,
-        null,
-        null,
-        null,
-        new java.util.ArrayList<>());
+  @DisplayName("PerfilIncentivos should be created with relationships")
+  void testPerfilIncentivosPersistence() {
+    PerfilIncentivos perfil = new PerfilIncentivos("donador-1");
 
-    Assertions.assertNotNull(donador.getId());
-    Assertions.assertEquals("Juan", donador.getNombre());
-    Assertions.assertNotNull(donador.getInsignias());
-    Assertions.assertTrue(donador.getInsignias().isEmpty());
+    Assertions.assertNotNull(perfil.getId());
+    Assertions.assertEquals("donador-1", perfil.getId());
+    Assertions.assertNotNull(perfil.getInsignias());
+    Assertions.assertTrue(perfil.getInsignias().isEmpty());
   }
 
   @Test
-  @DisplayName("Donador should be able to add insignias")
-  void testDonadorAgregarInsignia() {
-    Donador donador = new Donador("Maria", "Garcia", 25, "maria@example.com", "87654321", "Avenida 456");
+  @DisplayName("PerfilIncentivos should be able to add insignias")
+  void testPerfilIncentivosAgregarInsignia() {
+    PerfilIncentivos perfil = new PerfilIncentivos("donador-2");
     Insignia insignia = new Insignia("insignia-1", "Badge 1", "First Badge");
 
-    donador.agregarInsignia(insignia);
+    perfil.agregarInsignia(insignia);
 
-    Assertions.assertEquals(1, donador.getInsignias().size());
-    Assertions.assertEquals("insignia-1", donador.getInsignias().get(0).getId());
+    Assertions.assertEquals(1, perfil.getInsignias().size());
+    Assertions.assertEquals("insignia-1", perfil.getInsignias().get(0).getId());
   }
 
   @Test
-  @DisplayName("Donador should be able to add categorias")
-  void testDonadorAgregarCategoria() {
-    Donador donador = new Donador("Carlos", "Lopez", 35, "carlos@example.com", "11111111", "Paseo 789");
+  @DisplayName("PerfilIncentivos should be able to add categorias")
+  void testPerfilIncentivosAgregarCategoria() {
+    PerfilIncentivos perfil = new PerfilIncentivos("donador-3");
 
-    donador.agregarCategoria(CategoriaDonadorEnum.COLABORADOR);
-    donador.agregarCategoria(CategoriaDonadorEnum.SALVADOR);
+    perfil.agregarCategoria(CategoriaDonadorEnum.COLABORADOR);
+    perfil.agregarCategoria(CategoriaDonadorEnum.SALVADOR);
 
-    Assertions.assertEquals(2, donador.getCategorias().size());
-    Assertions.assertTrue(donador.getCategorias().contains(CategoriaDonadorEnum.COLABORADOR));
-    Assertions.assertTrue(donador.getCategorias().contains(CategoriaDonadorEnum.SALVADOR));
+    Assertions.assertEquals(2, perfil.getCategorias().size());
+    Assertions.assertTrue(perfil.getCategorias().contains(CategoriaDonadorEnum.COLABORADOR));
+    Assertions.assertTrue(perfil.getCategorias().contains(CategoriaDonadorEnum.SALVADOR));
   }
 }

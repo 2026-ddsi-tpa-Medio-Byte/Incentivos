@@ -1,11 +1,10 @@
 package ar.edu.utn.dds.k3003.repositories;
 
-import ar.edu.utn.dds.k3003.dtos.donadoresYEntidades.EstadoDonadorEnum;
 import ar.edu.utn.dds.k3003.dtos.incentivos.CategoriaDonadorEnum;
 import ar.edu.utn.dds.k3003.dtos.incentivos.TipoMisionEnum;
-import ar.edu.utn.dds.k3003.model.Donador;
 import ar.edu.utn.dds.k3003.model.Insignia;
 import ar.edu.utn.dds.k3003.model.Mision;
+import ar.edu.utn.dds.k3003.model.PerfilIncentivos;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -13,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 /**
- * Pruebas del ORM (JPA/Hibernate) sobre las entidades Donador, Insignia y Mision.
+ * Pruebas del ORM (JPA/Hibernate) sobre las entidades PerfilIncentivos, Insignia y Mision.
  *
  * <p>Usa {@code @DataJpaTest}, que reemplaza el datasource configurado (PostgreSQL en Render)
  * por una base embebida H2, ejecutando cada test en su propia transacción con rollback. Esto
@@ -23,7 +22,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 @DataJpaTest
 class OrmRepositoryTest {
 
-  @Autowired private DonadorRepository donadorRepository;
+  @Autowired private PerfilIncentivosRepository perfilRepository;
   @Autowired private InsigniaRepository insigniaRepository;
   @Autowired private MisionRepository misionRepository;
 
@@ -58,41 +57,33 @@ class OrmRepositoryTest {
   }
 
   @Test
-  void testGuardarDonadorConInsigniasYCategorias() {
+  void testGuardarPerfilConInsigniasYCategorias() {
     Insignia insignia = insigniaRepository.save(new Insignia("insignia-orm-2", "Veterano", "5+ donaciones"));
 
-    Donador donador = new Donador("Ana", "Gomez", 28, "ana@example.com", "20200200", "Calle Falsa 123");
-    donador.setId("donador-orm-1");
-    donador.setEstado(EstadoDonadorEnum.VERIFICADO);
-    donador.setCategoria("Colaborador");
-    donador.agregarInsignia(insignia);
-    donador.agregarCategoria(CategoriaDonadorEnum.COLABORADOR);
+    PerfilIncentivos perfil = new PerfilIncentivos("donador-orm-1");
+    perfil.agregarInsignia(insignia);
+    perfil.agregarCategoria(CategoriaDonadorEnum.COLABORADOR);
 
-    donadorRepository.save(donador);
+    perfilRepository.save(perfil);
 
-    Donador recuperado = donadorRepository.findById("donador-orm-1").orElseThrow();
+    PerfilIncentivos recuperado = perfilRepository.findById("donador-orm-1").orElseThrow();
 
-    Assertions.assertEquals("Ana", recuperado.getNombre());
-    Assertions.assertEquals(EstadoDonadorEnum.VERIFICADO, recuperado.getEstado());
     Assertions.assertEquals(1, recuperado.getInsignias().size());
     Assertions.assertEquals("insignia-orm-2", recuperado.getInsignias().get(0).getId());
     Assertions.assertTrue(recuperado.getCategorias().contains(CategoriaDonadorEnum.COLABORADOR));
   }
 
   @Test
-  void testActualizarDonador() {
-    Donador donador = new Donador("Luis", "Martinez", 40, "luis@example.com", "30300300", "Otra Calle 456");
-    donador.setId("donador-orm-2");
-    donadorRepository.save(donador);
+  void testActualizarPerfil() {
+    PerfilIncentivos perfil = new PerfilIncentivos("donador-orm-2");
+    perfilRepository.save(perfil);
 
-    Donador guardado = donadorRepository.findById("donador-orm-2").orElseThrow();
-    guardado.setCategoria("Salvador");
+    PerfilIncentivos guardado = perfilRepository.findById("donador-orm-2").orElseThrow();
     guardado.setMisionActualID("mision-orm-1");
-    donadorRepository.save(guardado);
+    perfilRepository.save(guardado);
 
-    Donador actualizado = donadorRepository.findById("donador-orm-2").orElseThrow();
+    PerfilIncentivos actualizado = perfilRepository.findById("donador-orm-2").orElseThrow();
 
-    Assertions.assertEquals("Salvador", actualizado.getCategoria());
     Assertions.assertEquals("mision-orm-1", actualizado.getMisionActualID());
   }
 
@@ -107,24 +98,17 @@ class OrmRepositoryTest {
   }
 
   @Test
-  void testBuscarDonadorInexistente() {
-    Assertions.assertTrue(donadorRepository.findById("no-existe").isEmpty());
+  void testBuscarPerfilInexistente() {
+    Assertions.assertTrue(perfilRepository.findById("no-existe").isEmpty());
   }
 
   @Test
-  void testListarTodosLosDonadores() {
-    donadorRepository.save(crearDonador("donador-orm-3", "Pedro"));
-    donadorRepository.save(crearDonador("donador-orm-4", "Sofia"));
+  void testListarTodosLosPerfiles() {
+    perfilRepository.save(new PerfilIncentivos("donador-orm-3"));
+    perfilRepository.save(new PerfilIncentivos("donador-orm-4"));
 
-    List<Donador> donadores = donadorRepository.findAll();
+    List<PerfilIncentivos> perfiles = perfilRepository.findAll();
 
-    Assertions.assertTrue(donadores.size() >= 2);
-  }
-
-  private Donador crearDonador(String id, String nombre) {
-    Donador donador =
-        new Donador(nombre, "Apellido", 20, nombre + "@example.com", id + "-doc", "Domicilio");
-    donador.setId(id);
-    return donador;
+    Assertions.assertTrue(perfiles.size() >= 2);
   }
 }

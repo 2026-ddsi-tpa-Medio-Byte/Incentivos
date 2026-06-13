@@ -1,9 +1,9 @@
 package ar.edu.utn.dds.k3003.controllers;
 
-import ar.edu.utn.dds.k3003.model.Donador;
 import ar.edu.utn.dds.k3003.model.Insignia;
 import ar.edu.utn.dds.k3003.model.Mision;
-import ar.edu.utn.dds.k3003.repositories.DonadorRepository;
+import ar.edu.utn.dds.k3003.model.PerfilIncentivos;
+import ar.edu.utn.dds.k3003.repositories.PerfilIncentivosRepository;
 import ar.edu.utn.dds.k3003.repositories.InsigniaRepository;
 import ar.edu.utn.dds.k3003.repositories.MisionRepository;
 import org.springframework.http.ResponseEntity;
@@ -15,12 +15,12 @@ import java.util.List;
 @RequestMapping("/admin")
 public class FachadaAdminController {
 
-    private final DonadorRepository donadorRepo;
+    private final PerfilIncentivosRepository perfilRepo;
     private final InsigniaRepository insigniaRepo;
     private final MisionRepository misionRepo;
 
-    public FachadaAdminController(DonadorRepository donadorRepo, InsigniaRepository insigniaRepo, MisionRepository misionRepo) {
-        this.donadorRepo = donadorRepo;
+    public FachadaAdminController(PerfilIncentivosRepository perfilRepo, InsigniaRepository insigniaRepo, MisionRepository misionRepo) {
+        this.perfilRepo = perfilRepo;
         this.insigniaRepo = insigniaRepo;
         this.misionRepo = misionRepo;
     }
@@ -35,9 +35,9 @@ public class FachadaAdminController {
         return ResponseEntity.ok(misionRepo.findAll());
     }
 
-    @GetMapping("/donadores")
-    public ResponseEntity<List<Donador>> listDonadores() {
-        return ResponseEntity.ok(donadorRepo.findAll());
+    @GetMapping("/perfiles")
+    public ResponseEntity<List<PerfilIncentivos>> listPerfiles() {
+        return ResponseEntity.ok(perfilRepo.findAll());
     }
 
     @PostMapping("/clear")
@@ -45,7 +45,7 @@ public class FachadaAdminController {
         // Order matters due to FK constraints; remove children first
         insigniaRepo.deleteAll();
         misionRepo.deleteAll();
-        donadorRepo.deleteAll();
+        perfilRepo.deleteAll();
         return ResponseEntity.ok("database.cleared");
     }
 

@@ -1,6 +1,8 @@
 package ar.edu.utn.dds.k3003;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 
@@ -13,35 +15,36 @@ import ar.edu.utn.dds.k3003.dtos.donadoresYEntidades.QuejaDTO;
 import ar.edu.utn.dds.k3003.dtos.incentivos.InsigniaDTO;
 import ar.edu.utn.dds.k3003.fachadas.FachadaDonadoresYEntidades;
 import ar.edu.utn.dds.k3003.fachadas.FachadaIncentivos;
-import ar.edu.utn.dds.k3003.model.Donador;
-import ar.edu.utn.dds.k3003.model.Insignia;
-import ar.edu.utn.dds.k3003.repositories.DonadorRepository;
+import ar.edu.utn.dds.k3003.repositories.PerfilIncentivosRepository;
 
 public class Fachada_DonadoresEntidades implements FachadaDonadoresYEntidades  {
 
-    private List<Donador> donadores;
-    private DonadorRepository.RepoDonadores repoDonadores;
+    private final Map<String, DonadorDTO> donadores;
+    private final PerfilIncentivosRepository.RepoPerfiles repoPerfiles;
 
 
     public Fachada_DonadoresEntidades() {
-        this.donadores = new ArrayList<>();
-        this.repoDonadores = new DonadorRepository.RepoDonadores(new ArrayList<>());
+        this.donadores = new HashMap<>();
+        this.repoPerfiles = new PerfilIncentivosRepository.RepoPerfiles();
     }
     @Override
     public DonadorDTO agregarDonador(DonadorDTO donadorDTO) {
-        
+        donadores.put(donadorDTO.id(), donadorDTO);
         return donadorDTO;
     }
 
     @Override
     public DonadorDTO buscarDonadorPorID(String donadorID) throws NoSuchElementException {
-        Donador donador = repoDonadores.buscarDonadorPorID(donadorID);
-        return new DonadorDTO(donador.getId(), donador.getNombre(), donador.getApellido(), donador.getEdad(), donador.getEmail(), donador.getNroDocumento(), donador.getDomicilio(), donador.getEstado(),donador.getCategoria());
+        DonadorDTO donador = donadores.get(donadorID);
+        if (donador == null) {
+            throw new NoSuchElementException("No se encontró el donador con ID: " + donadorID);
+        }
+        return donador;
     }
 
     @Override
     public EntidadBeneficaDTO agregarEntidad(EntidadBeneficaDTO entidadBeneficaDTO) {
-       
+
         return entidadBeneficaDTO;
     }
 
@@ -93,33 +96,34 @@ public class Fachada_DonadoresEntidades implements FachadaDonadoresYEntidades  {
 
     @Override
     public DonadorStatsDTO estadisticasDonador(String donadorID) {
-        Donador donador = repoDonadores.buscarDonadorPorID(donadorID);
-        return new DonadorStatsDTO(donador.getId(), donador.getNombre(), donador.getApellido(), donador.getEdad(), donador.getEstado(), donador.getCategoria(), donador.getMisionActualID(), null);
+        DonadorDTO donador = this.buscarDonadorPorID(donadorID);
+        String misionActualID = repoPerfiles.getMisionesPorDonador().get(donadorID);
+        List<String> insigniasID = repoPerfiles.getInsigniasPorDonador().getOrDefault(donadorID, new ArrayList<>());
+        return new DonadorStatsDTO(donador.id(), donador.nombre(), donador.apellido(), donador.edad(), donador.estado(), donador.categoria(), misionActualID, insigniasID);
     }
 
     @Override
     public void setFachadaIncentivos(FachadaIncentivos fachadaIncentivos) {
         //this.fachadaIncentivos = fachadaIncentivos;
     }
-    
+
     public void asignarMisionADonador(String donadorID, String misionDTOID) throws NoSuchElementException {
         if (misionDTOID == null) {
           throw new RuntimeException("Mision nula");
         }
-        repoDonadores.buscarDonadorPorID(donadorID).setMisionActualID(misionDTOID);
+        this.buscarDonadorPorID(donadorID);
+        repoPerfiles.asignarMisionADonador(donadorID, misionDTOID);
       }
 
-    
-    
+
+
       public void asignarInsigniaADonador(String donadorID, InsigniaDTO insigniaDTO) throws NoSuchElementException {
         if (insigniaDTO == null) {
           throw new RuntimeException("Insignia nula");
         }
-    
+
         this.buscarDonadorPorID(donadorID);
-            Donador donador = repoDonadores.buscarDonadorPorID(donadorID);
-            Insignia nuevaInsignia = new Insignia(insigniaDTO.id(), insigniaDTO.nombre(), insigniaDTO.descripcion());
-            donador.agregarInsignia(nuevaInsignia);
+        repoPerfiles.asignarInsigniaADonador(donadorID, insigniaDTO.id());
         }
     }
 

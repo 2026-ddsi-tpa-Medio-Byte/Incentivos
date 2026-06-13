@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 Test set: ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest
 -------------------------------------------------------------------------------
-Tests run: 8, Failures: 0, Errors: 6, Skipped: 0, Time elapsed: 3.151 s <<< FAILURE! -- in ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest
-ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testModificarEstadoYCategoria -- Time elapsed: 1.432 s <<< ERROR!
+Tests run: 8, Failures: 0, Errors: 6, Skipped: 0, Time elapsed: 3.337 s <<< FAILURE! -- in ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest
+ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testModificarEstadoYCategoria -- Time elapsed: 1.160 s <<< ERROR!
 org.springframework.web.client.HttpClientErrorException$BadRequest: 400 Bad Request on POST request for "https://donadoresyentidadesv2.onrender.com/donadores": "Ya existe un donador con ese ID"
 	at org.springframework.web.client.HttpClientErrorException.create(HttpClientErrorException.java:103)
 	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:186)
@@ -17,7 +17,7 @@ org.springframework.web.client.HttpClientErrorException$BadRequest: 400 Bad Requ
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
 
-ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testNecesidades -- Time elapsed: 0.318 s <<< ERROR!
+ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testNecesidades -- Time elapsed: 0.240 s <<< ERROR!
 org.springframework.web.client.HttpClientErrorException$BadRequest: 400 Bad Request on POST request for "https://donadoresyentidadesv2.onrender.com/entidades": "Ya existe una entidad con ese ID"
 	at org.springframework.web.client.HttpClientErrorException.create(HttpClientErrorException.java:103)
 	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:186)
@@ -32,7 +32,7 @@ org.springframework.web.client.HttpClientErrorException$BadRequest: 400 Bad Requ
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
 
-ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testPuedeDonarYEstadisticas -- Time elapsed: 0.244 s <<< ERROR!
+ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testPuedeDonarYEstadisticas -- Time elapsed: 0.777 s <<< ERROR!
 org.springframework.web.client.HttpClientErrorException$BadRequest: 400 Bad Request on POST request for "https://donadoresyentidadesv2.onrender.com/donadores": "Ya existe un donador con ese ID"
 	at org.springframework.web.client.HttpClientErrorException.create(HttpClientErrorException.java:103)
 	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:186)
@@ -47,7 +47,7 @@ org.springframework.web.client.HttpClientErrorException$BadRequest: 400 Bad Requ
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
 
-ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testAgregarYBuscarDonador -- Time elapsed: 0.229 s <<< ERROR!
+ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testAgregarYBuscarDonador -- Time elapsed: 0.217 s <<< ERROR!
 org.springframework.web.client.HttpClientErrorException$BadRequest: 400 Bad Request on POST request for "https://donadoresyentidadesv2.onrender.com/donadores": "Ya existe un donador con ese ID"
 	at org.springframework.web.client.HttpClientErrorException.create(HttpClientErrorException.java:103)
 	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:186)
@@ -62,7 +62,7 @@ org.springframework.web.client.HttpClientErrorException$BadRequest: 400 Bad Requ
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
 
-ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testQuejas -- Time elapsed: 0.212 s <<< ERROR!
+ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testQuejas -- Time elapsed: 0.260 s <<< ERROR!
 org.springframework.web.client.HttpClientErrorException$BadRequest: 400 Bad Request on POST request for "https://donadoresyentidadesv2.onrender.com/donadores": "Ya existe un donador con ese ID"
 	at org.springframework.web.client.HttpClientErrorException.create(HttpClientErrorException.java:103)
 	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:186)
@@ -77,7 +77,7 @@ org.springframework.web.client.HttpClientErrorException$BadRequest: 400 Bad Requ
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
 
-ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testAgregarYBuscarEntidad -- Time elapsed: 0.223 s <<< ERROR!
+ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testAgregarYBuscarEntidad -- Time elapsed: 0.224 s <<< ERROR!
 org.springframework.web.client.HttpClientErrorException$BadRequest: 400 Bad Request on POST request for "https://donadoresyentidadesv2.onrender.com/entidades": "Ya existe una entidad con ese ID"
 	at org.springframework.web.client.HttpClientErrorException.create(HttpClientErrorException.java:103)
 	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:186)

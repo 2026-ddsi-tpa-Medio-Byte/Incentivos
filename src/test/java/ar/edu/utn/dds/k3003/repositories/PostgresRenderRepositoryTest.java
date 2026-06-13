@@ -1,11 +1,10 @@
 package ar.edu.utn.dds.k3003.repositories;
 
-import ar.edu.utn.dds.k3003.dtos.donadoresYEntidades.EstadoDonadorEnum;
 import ar.edu.utn.dds.k3003.dtos.incentivos.CategoriaDonadorEnum;
 import ar.edu.utn.dds.k3003.dtos.incentivos.TipoMisionEnum;
-import ar.edu.utn.dds.k3003.model.Donador;
 import ar.edu.utn.dds.k3003.model.Insignia;
 import ar.edu.utn.dds.k3003.model.Mision;
+import ar.edu.utn.dds.k3003.model.PerfilIncentivos;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Commit
 class PostgresRenderRepositoryTest {
 
-  @Autowired private DonadorRepository donadorRepository;
+  @Autowired private PerfilIncentivosRepository perfilRepository;
   @Autowired private InsigniaRepository insigniaRepository;
   @Autowired private MisionRepository misionRepository;
 
@@ -65,47 +64,39 @@ class PostgresRenderRepositoryTest {
   }
 
   @Test
-  void testGuardarDonadorConInsigniasYCategoriasEnRender() {
+  void testGuardarPerfilConInsigniasYCategoriasEnRender() {
     Insignia insignia = insigniaRepository.save(new Insignia("insignia-render-2", "Veterano", "5+ donaciones"));
 
-    Donador donador = new Donador("Ana", "Gomez", 28, "ana@example.com", "20200200", "Calle Falsa 123");
-    donador.setId("donador-render-1");
-    donador.setEstado(EstadoDonadorEnum.VERIFICADO);
-    donador.setCategoria("Colaborador");
-    donador.agregarInsignia(insignia);
-    donador.agregarCategoria(CategoriaDonadorEnum.COLABORADOR);
+    PerfilIncentivos perfil = new PerfilIncentivos("donador-render-1");
+    perfil.agregarInsignia(insignia);
+    perfil.agregarCategoria(CategoriaDonadorEnum.COLABORADOR);
 
-    donadorRepository.save(donador);
-    donadorRepository.flush();
+    perfilRepository.save(perfil);
+    perfilRepository.flush();
 
-    Donador recuperado = donadorRepository.findById("donador-render-1").orElseThrow();
+    PerfilIncentivos recuperado = perfilRepository.findById("donador-render-1").orElseThrow();
 
-    Assertions.assertEquals("Ana", recuperado.getNombre());
-    Assertions.assertEquals(EstadoDonadorEnum.VERIFICADO, recuperado.getEstado());
     Assertions.assertEquals(1, recuperado.getInsignias().size());
     Assertions.assertEquals("insignia-render-2", recuperado.getInsignias().get(0).getId());
     Assertions.assertTrue(recuperado.getCategorias().contains(CategoriaDonadorEnum.COLABORADOR));
   }
 
   @Test
-  void testActualizarDonadorEnRender() {
-    Donador donador = new Donador("Luis", "Martinez", 40, "luis@example.com", "30300300", "Otra Calle 456");
-    donador.setId("donador-render-2");
-    donadorRepository.save(donador);
+  void testActualizarPerfilEnRender() {
+    PerfilIncentivos perfil = new PerfilIncentivos("donador-render-2");
+    perfilRepository.save(perfil);
 
-    Donador guardado = donadorRepository.findById("donador-render-2").orElseThrow();
-    guardado.setCategoria("Salvador");
+    PerfilIncentivos guardado = perfilRepository.findById("donador-render-2").orElseThrow();
     guardado.setMisionActualID("mision-render-1");
-    donadorRepository.save(guardado);
+    perfilRepository.save(guardado);
 
-    Donador actualizado = donadorRepository.findById("donador-render-2").orElseThrow();
+    PerfilIncentivos actualizado = perfilRepository.findById("donador-render-2").orElseThrow();
 
-    Assertions.assertEquals("Salvador", actualizado.getCategoria());
     Assertions.assertEquals("mision-render-1", actualizado.getMisionActualID());
   }
 
   @Test
-  void testBuscarDonadorInexistenteEnRender() {
-    Assertions.assertTrue(donadorRepository.findById("no-existe-render").isEmpty());
+  void testBuscarPerfilInexistenteEnRender() {
+    Assertions.assertTrue(perfilRepository.findById("no-existe-render").isEmpty());
   }
 }
