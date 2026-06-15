@@ -64,13 +64,18 @@ public class FachadaDonacionesImpl implements FachadaDonaciones {
   @Override
   public List<DonacionDTO> buscarPorDonadorYFechaInicio(String donadorID, LocalDate fecha)
       throws NoSuchElementException {
-    String url = UriComponentsBuilder.fromUriString(donacionesBaseUrl + "/donaciones")
-        .queryParam("donadorID", donadorID)
-        .queryParam("fecha", fecha)
-        .toUriString();
+    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(donacionesBaseUrl + "/donaciones")
+        .queryParam("donadorID", donadorID);
+    if (fecha != null) {
+      builder.queryParam("fecha", fecha);
+    }
+    String url = builder.toUriString();
     try {
       DonacionDTO[] donaciones = restTemplate.getForObject(url, DonacionDTO[].class);
-      return donaciones != null ? Arrays.asList(donaciones) : List.of();
+      List<DonacionDTO> resultado = donaciones != null ? Arrays.asList(donaciones) : List.of();
+      return resultado.stream()
+          .filter(d -> donadorID.equals(d.donadorID()))
+          .collect(java.util.stream.Collectors.toList());
     } catch (Exception e) {
       throw new NoSuchElementException("No se encontraron donaciones para el donador: " + donadorID);
     }
