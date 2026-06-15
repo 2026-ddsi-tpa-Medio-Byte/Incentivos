@@ -85,4 +85,38 @@ public class IncentivosController {
       return ResponseEntity.notFound().build();
     }
   }
+
+  @PostMapping("/donadores/{donadorID}/mision-actual")
+  public ResponseEntity<Void> asignarMisionADonador(@PathVariable String donadorID, @RequestBody MisionDTO misionDTO) {
+    try {
+      fachada.asignarMisionADonador(donadorID, misionDTO);
+      return ResponseEntity.ok().build();
+    } catch (NoSuchElementException e) {
+      return ResponseEntity.notFound().build();
+    } catch (RuntimeException e) {
+      return ResponseEntity.badRequest().build();
+    }
+  }
+
+  @PostMapping("/donadores/{donadorID}/insignias")
+  public ResponseEntity<Void> asignarInsigniaADonador(@PathVariable String donadorID, @RequestBody InsigniaDTO insigniaDTO) {
+    try {
+      fachada.asignarInsigniaADonador(donadorID, insigniaDTO);
+      return ResponseEntity.ok().build();
+    } catch (NoSuchElementException e) {
+      return ResponseEntity.notFound().build();
+    } catch (RuntimeException e) {
+      return ResponseEntity.badRequest().build();
+    }
+  }
+
+  @PostMapping("/donadores/{donadorID}/procesar")
+  public ResponseEntity<Void> procesarDonador(@PathVariable String donadorID) {
+    try {
+      fachada.procesarDonador(donadorID);
+      return ResponseEntity.ok().build();
+    } catch (NoSuchElementException e) {
+      return ResponseEntity.notFound().build();
+    }
+  }
 }

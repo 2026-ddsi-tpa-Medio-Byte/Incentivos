@@ -113,12 +113,13 @@ public class Fachada implements FachadaIncentivos {
 
   // Constructor for Spring to inject JPA repositories (will set useJpa=true)
   @Autowired
-  public Fachada(PerfilIncentivosRepository perfilJpaRepository, InsigniaRepository insigniaJpaRepository, MisionRepository misionJpaRepository, FachadaDonaciones fachadaDonaciones, MisionEvaluatorService misionEvaluatorService) {
+  public Fachada(PerfilIncentivosRepository perfilJpaRepository, InsigniaRepository insigniaJpaRepository, MisionRepository misionJpaRepository, FachadaDonaciones fachadaDonaciones, FachadaDonadoresYEntidades fachadaDonadoresYEntidades, MisionEvaluatorService misionEvaluatorService) {
     this(); // initialize fallbacks
     this.perfilJpaRepository = perfilJpaRepository;
     this.insigniaJpaRepository = insigniaJpaRepository;
     this.misionJpaRepository = misionJpaRepository;
     this.fachadaDonaciones = fachadaDonaciones;
+    this.fachadaDonadoresYEntidades = fachadaDonadoresYEntidades;
     this.misionEvaluatorService = misionEvaluatorService;
     this.useJpa = true;
   }
@@ -317,7 +318,9 @@ public class Fachada implements FachadaIncentivos {
 
         if (cumpleMision) {
           if (misionActual.insigniaID() != null) {
-            Insignia insigniaDeMision = this.repoInsignias.getInsignias().stream().filter(i -> i.getId().equals(misionActual.insigniaID())).findFirst().orElse(null);
+            Insignia insigniaDeMision = useJpa
+                ? insigniaJpaRepository.findById(misionActual.insigniaID()).orElse(null)
+                : this.repoInsignias.getInsignias().stream().filter(i -> i.getId().equals(misionActual.insigniaID())).findFirst().orElse(null);
             if (insigniaDeMision != null) {
               InsigniaDTO insigniaDTO = new InsigniaDTO(insigniaDeMision.getId(), insigniaDeMision.getNombre(), insigniaDeMision.getDescripcion());
               this.asignarInsigniaADonador(donadorID, insigniaDTO);
