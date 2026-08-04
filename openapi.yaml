@@ -1,0 +1,301 @@
+openapi: 3.0.0
+info:
+  version: v1
+  title: API Incentivos - 2026 - DDSI - TPA
+  description: API del componente de Incentivos
+
+servers:
+  - url: https://incentivos-wtbd.onrender.com
+    description: Despliegue en Render (real)
+  - url: https://virtserver.swaggerhub.com/UTN-A74/2026-ddsi-tpa-incentivos/v1
+    description: Mock server (SwaggerHub)
+
+paths:
+  # ---------------- INSIGNIAS ----------------
+  /insignias:
+    post:
+      summary: Agregar una insignia
+      tags: [Insignias]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InsigniaDTO'
+            examples:
+              ejemplo:
+                value:
+                  id: insignia-render-1
+                  nombre: Primer Paso
+                  descripcion: Otorgada en la primera donación
+      responses:
+        '200':
+          description: Insignia creada correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InsigniaDTO'
+
+    get:
+      summary: Obtener todas las insignias
+      tags: [Insignias]
+      responses:
+        '200':
+          description: Lista de insignias
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InsigniaDTO'
+
+  /insignias/{id}:
+    get:
+      summary: Obtener una insignia por ID
+      tags: [Insignias]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Insignia encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InsigniaDTO'
+        '404':
+          description: No existe una insignia con ese ID
+
+  # ---------------- MISIONES ----------------
+  /misiones:
+    post:
+      summary: Agregar una misión
+      tags: [Misiones]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MisionDTO'
+            examples:
+              ejemplo:
+                value:
+                  id: mision-render-1
+                  nombre: Donar 5 veces
+                  insigniaID: insignia-render-1
+                  categoriaInicio: COLABORADOR
+                  categoriaFin: TRANSFORMADOR
+                  tipo: DONACIONES_EXITOSAS
+      responses:
+        '200':
+          description: Misión creada correctamente (si el ID ya existe, se reutiliza la definición ya guardada)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MisionDTO'
+
+    get:
+      summary: Obtener todas las misiones
+      tags: [Misiones]
+      responses:
+        '200':
+          description: Lista de misiones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MisionDTO'
+
+  /misiones/{id}:
+    get:
+      summary: Obtener una misión por ID
+      tags: [Misiones]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Misión encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MisionDTO'
+        '404':
+          description: No existe una misión con ese ID
+
+  # ---------------- DONADORES (perfil de incentivos) ----------------
+  /donadores/{donadorID}/insignias:
+    get:
+      summary: Obtener las insignias de un donador
+      tags: [Donadores]
+      parameters:
+        - name: donadorID
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista de insignias del donador (vacía si el donador no tiene perfil de incentivos aún)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InsigniaDTO'
+
+    post:
+      summary: Otorgar una insignia a un donador
+      tags: [Donadores]
+      parameters:
+        - name: donadorID
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InsigniaDTO'
+            examples:
+              ejemplo:
+                value:
+                  id: insignia-render-1
+                  nombre: Primer Paso
+                  descripcion: Otorgada en la primera donación
+      responses:
+        '200':
+          description: Insignia otorgada correctamente
+        '400':
+          description: No se pudo otorgar la insignia
+        '404':
+          description: No existe el donador o la insignia indicada
+
+  /donadores/{donadorID}/mision-actual:
+    get:
+      summary: Obtener la misión en curso de un donador
+      tags: [Donadores]
+      parameters:
+        - name: donadorID
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Misión en curso del donador
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MisionDTO'
+        '404':
+          description: El donador no tiene una misión en curso
+
+    post:
+      summary: Asignar una misión a un donador
+      tags: [Donadores]
+      parameters:
+        - name: donadorID
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MisionDTO'
+            examples:
+              ejemplo:
+                value:
+                  id: mision-render-1
+                  nombre: Donar 5 veces
+                  insigniaID: insignia-render-1
+                  categoriaInicio: COLABORADOR
+                  categoriaFin: TRANSFORMADOR
+                  tipo: DONACIONES_EXITOSAS
+      responses:
+        '200':
+          description: Misión asignada correctamente (si el ID ya existe, no se sobrescriben sus campos)
+        '400':
+          description: No se pudo asignar la misión
+        '404':
+          description: No existe el donador indicado
+
+  /donadores/{donadorID}/procesar:
+    post:
+      summary: Procesar a un donador (evalúa su misión en curso contra su historial de donaciones y, si cumple, le otorga la insignia y sube de categoría)
+      tags: [Donadores]
+      parameters:
+        - name: donadorID
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Donador procesado correctamente (sin body)
+        '404':
+          description: No existe el donador indicado, o no tiene donaciones para evaluar
+
+components:
+  schemas:
+    InsigniaDTO:
+      type: object
+      properties:
+        id:
+          type: string
+        nombre:
+          type: string
+        descripcion:
+          type: string
+      required: [id, nombre, descripcion]
+
+    MisionDTO:
+      type: object
+      properties:
+        id:
+          type: string
+        nombre:
+          type: string
+        insigniaID:
+          type: string
+        categoriaInicio:
+          $ref: '#/components/schemas/CategoriaDonadorEnum'
+        categoriaFin:
+          $ref: '#/components/schemas/CategoriaDonadorEnum'
+        tipo:
+          $ref: '#/components/schemas/TipoMisionEnum'
+      required: [id, nombre, insigniaID, categoriaInicio, categoriaFin, tipo]
+
+    CategoriaDonadorEnum:
+      type: string
+      enum:
+        - OCASIONAL
+        - COLABORADOR
+        - TRANSFORMADOR
+        - SALVADOR
+        - REVOLUCIONARIO
+
+    TipoMisionEnum:
+      type: string
+      description: >
+        Criterio que evalúa MisionEvaluatorService contra el historial completo de donaciones del donador:
+        DONACIONES_EXITOSAS (20+ donaciones ACEPTADA), COMPLETITUD (donó en 3+ productos/categorías distintas),
+        DONACIONES_ASCENDENTES (las últimas 5 donaciones son de cantidades crecientes),
+        REVOLUCION_DONADORA (10+ donaciones con cantidad > 50)
+      enum:
+        - COMPLETITUD
+        - DONACIONES_EXITOSAS
+        - DONACIONES_ASCENDENTES
+        - REVOLUCION_DONADORA
