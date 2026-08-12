@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: ar.edu.utn.dds.k3003.integration.IncentivosTest
 -------------------------------------------------------------------------------
-Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 137.3 s -- in ar.edu.utn.dds.k3003.integration.IncentivosTest
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 119.4 s -- in ar.edu.utn.dds.k3003.integration.IncentivosTest

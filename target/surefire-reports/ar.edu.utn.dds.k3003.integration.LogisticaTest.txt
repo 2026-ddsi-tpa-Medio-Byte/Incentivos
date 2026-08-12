@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 Test set: ar.edu.utn.dds.k3003.integration.LogisticaTest
 -------------------------------------------------------------------------------
-Tests run: 5, Failures: 1, Errors: 1, Skipped: 0, Time elapsed: 128.1 s <<< FAILURE! -- in ar.edu.utn.dds.k3003.integration.LogisticaTest
-ar.edu.utn.dds.k3003.integration.LogisticaTest.testAgregarDepositoYGestionarDonacion -- Time elapsed: 127.1 s <<< ERROR!
+Tests run: 5, Failures: 1, Errors: 1, Skipped: 0, Time elapsed: 120.4 s <<< FAILURE! -- in ar.edu.utn.dds.k3003.integration.LogisticaTest
+ar.edu.utn.dds.k3003.integration.LogisticaTest.testAgregarDepositoYGestionarDonacion -- Time elapsed: 119.1 s <<< ERROR!
 org.springframework.web.client.RestClientException: Error while extracting response for type [class ar.edu.utn.dds.k3003.dtos.logistica.DepositoDTO] and content type [application/xml;charset=UTF-8]
 	at org.springframework.web.client.HttpMessageConverterExtractor.extractData(HttpMessageConverterExtractor.java:127)
 	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:903)
@@ -40,7 +40,7 @@ Caused by: com.fasterxml.jackson.databind.exc.MismatchedInputException: Cannot d
 	at org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter.readJavaType(AbstractJackson2HttpMessageConverter.java:397)
 	... 10 more
 
-ar.edu.utn.dds.k3003.integration.LogisticaTest.testReportarEntrega -- Time elapsed: 0.409 s <<< FAILURE!
+ar.edu.utn.dds.k3003.integration.LogisticaTest.testReportarEntrega -- Time elapsed: 0.311 s <<< FAILURE!
 org.opentest4j.AssertionFailedError: Unexpected exception thrown: org.springframework.web.client.HttpServerErrorException$InternalServerError: 500 Internal Server Error on POST request for "https://logistica-i4rf.onrender.com/api/asignaciones/reportar-entrega": "<ReporteEntregaResponseDTO><mensajeDonacion>Error al procesar la entrega: No existe asignación para el paquete: null</mensajeDonacion><donacionId/><mensajeAsignacion/><asignacionId/></ReporteEntregaResponseDTO>"
 	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:152)
 	at org.junit.jupiter.api.AssertDoesNotThrow.createAssertionFailedError(AssertDoesNotThrow.java:84)
