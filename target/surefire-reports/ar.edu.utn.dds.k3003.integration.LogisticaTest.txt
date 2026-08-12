@@ -1,14 +1,11 @@
 -------------------------------------------------------------------------------
 Test set: ar.edu.utn.dds.k3003.integration.LogisticaTest
 -------------------------------------------------------------------------------
-Tests run: 5, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 1.128 s <<< FAILURE! -- in ar.edu.utn.dds.k3003.integration.LogisticaTest
-ar.edu.utn.dds.k3003.integration.LogisticaTest.testAgregarDepositoYGestionarDonacion -- Time elapsed: 0.309 s <<< ERROR!
-org.springframework.web.client.HttpServerErrorException$InternalServerError: 500 Internal Server Error on POST request for "https://logistica-i4rf.onrender.com/api/depositos": "Error interno: Identifier of entity 'ar.edu.utn.dds.k3003.zAlumno.entidades.Logistica.Deposito' must be manually assigned before calling 'persist()'"
-	at org.springframework.web.client.HttpServerErrorException.create(HttpServerErrorException.java:102)
-	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:189)
-	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:147)
-	at org.springframework.web.client.RestTemplate.handleResponse(RestTemplate.java:953)
-	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:902)
+Tests run: 5, Failures: 1, Errors: 1, Skipped: 0, Time elapsed: 128.1 s <<< FAILURE! -- in ar.edu.utn.dds.k3003.integration.LogisticaTest
+ar.edu.utn.dds.k3003.integration.LogisticaTest.testAgregarDepositoYGestionarDonacion -- Time elapsed: 127.1 s <<< ERROR!
+org.springframework.web.client.RestClientException: Error while extracting response for type [class ar.edu.utn.dds.k3003.dtos.logistica.DepositoDTO] and content type [application/xml;charset=UTF-8]
+	at org.springframework.web.client.HttpMessageConverterExtractor.extractData(HttpMessageConverterExtractor.java:127)
+	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:903)
 	at org.springframework.web.client.RestTemplate.execute(RestTemplate.java:801)
 	at org.springframework.web.client.RestTemplate.postForObject(RestTemplate.java:518)
 	at ar.edu.utn.dds.k3003.fachadas.FachadaLogisticaImpl.agregarDeposito(FachadaLogisticaImpl.java:40)
@@ -16,4 +13,54 @@ org.springframework.web.client.HttpServerErrorException$InternalServerError: 500
 	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+Caused by: org.springframework.http.converter.HttpMessageNotReadableException: JSON parse error: Cannot deserialize value of type `java.util.ArrayList<ar.edu.utn.dds.k3003.dtos.logistica.PaqueteDTO>` from String value (token `JsonToken.VALUE_STRING`)
+	at org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter.readJavaType(AbstractJackson2HttpMessageConverter.java:408)
+	at org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter.read(AbstractJackson2HttpMessageConverter.java:356)
+	at org.springframework.web.client.HttpMessageConverterExtractor.extractData(HttpMessageConverterExtractor.java:105)
+	... 8 more
+Caused by: com.fasterxml.jackson.databind.exc.MismatchedInputException: Cannot deserialize value of type `java.util.ArrayList<ar.edu.utn.dds.k3003.dtos.logistica.PaqueteDTO>` from String value (token `JsonToken.VALUE_STRING`)
+ at [Source: (org.springframework.util.StreamUtils$NonClosingInputStream); line: 1, column: 182] (through reference chain: ar.edu.utn.dds.k3003.dtos.logistica.DepositoDTO["stockActual"])
+	at com.fasterxml.jackson.databind.exc.MismatchedInputException.from(MismatchedInputException.java:59)
+	at com.fasterxml.jackson.databind.DeserializationContext.reportInputMismatch(DeserializationContext.java:1794)
+	at com.fasterxml.jackson.databind.DeserializationContext.handleUnexpectedToken(DeserializationContext.java:1568)
+	at com.fasterxml.jackson.databind.DeserializationContext.handleUnexpectedToken(DeserializationContext.java:1515)
+	at com.fasterxml.jackson.databind.deser.std.CollectionDeserializer.handleNonArray(CollectionDeserializer.java:404)
+	at com.fasterxml.jackson.databind.deser.std.CollectionDeserializer._deserializeFromString(CollectionDeserializer.java:331)
+	at com.fasterxml.jackson.databind.deser.std.CollectionDeserializer.deserialize(CollectionDeserializer.java:251)
+	at com.fasterxml.jackson.databind.deser.std.CollectionDeserializer.deserialize(CollectionDeserializer.java:29)
+	at com.fasterxml.jackson.databind.deser.SettableBeanProperty.deserialize(SettableBeanProperty.java:543)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializer._deserializeWithErrorWrapping(BeanDeserializer.java:587)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializer._deserializeUsingPropertyBased(BeanDeserializer.java:440)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializerBase.deserializeFromObjectUsingNonDefault(BeanDeserializerBase.java:1499)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializer.deserializeFromObject(BeanDeserializer.java:340)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializer.deserialize(BeanDeserializer.java:177)
+	at com.fasterxml.jackson.dataformat.xml.deser.XmlDeserializationContext.readRootValue(XmlDeserializationContext.java:104)
+	at com.fasterxml.jackson.databind.ObjectReader._bindAndClose(ObjectReader.java:2130)
+	at com.fasterxml.jackson.databind.ObjectReader.readValue(ObjectReader.java:1500)
+	at org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter.readJavaType(AbstractJackson2HttpMessageConverter.java:397)
+	... 10 more
+
+ar.edu.utn.dds.k3003.integration.LogisticaTest.testReportarEntrega -- Time elapsed: 0.409 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: Unexpected exception thrown: org.springframework.web.client.HttpServerErrorException$InternalServerError: 500 Internal Server Error on POST request for "https://logistica-i4rf.onrender.com/api/asignaciones/reportar-entrega": "<ReporteEntregaResponseDTO><mensajeDonacion>Error al procesar la entrega: No existe asignación para el paquete: null</mensajeDonacion><donacionId/><mensajeAsignacion/><asignacionId/></ReporteEntregaResponseDTO>"
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:152)
+	at org.junit.jupiter.api.AssertDoesNotThrow.createAssertionFailedError(AssertDoesNotThrow.java:84)
+	at org.junit.jupiter.api.AssertDoesNotThrow.assertDoesNotThrow(AssertDoesNotThrow.java:53)
+	at org.junit.jupiter.api.AssertDoesNotThrow.assertDoesNotThrow(AssertDoesNotThrow.java:36)
+	at org.junit.jupiter.api.Assertions.assertDoesNotThrow(Assertions.java:3199)
+	at ar.edu.utn.dds.k3003.integration.LogisticaTest.testReportarEntrega(LogisticaTest.java:74)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+Caused by: org.springframework.web.client.HttpServerErrorException$InternalServerError: 500 Internal Server Error on POST request for "https://logistica-i4rf.onrender.com/api/asignaciones/reportar-entrega": "<ReporteEntregaResponseDTO><mensajeDonacion>Error al procesar la entrega: No existe asignación para el paquete: null</mensajeDonacion><donacionId/><mensajeAsignacion/><asignacionId/></ReporteEntregaResponseDTO>"
+	at org.springframework.web.client.HttpServerErrorException.create(HttpServerErrorException.java:102)
+	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:189)
+	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:147)
+	at org.springframework.web.client.RestTemplate.handleResponse(RestTemplate.java:953)
+	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:902)
+	at org.springframework.web.client.RestTemplate.execute(RestTemplate.java:801)
+	at org.springframework.web.client.RestTemplate.postForObject(RestTemplate.java:518)
+	at ar.edu.utn.dds.k3003.fachadas.FachadaLogisticaImpl.reportarEntrega(FachadaLogisticaImpl.java:103)
+	at ar.edu.utn.dds.k3003.integration.LogisticaTest.lambda$testReportarEntrega$2(LogisticaTest.java:74)
+	at org.junit.jupiter.api.AssertDoesNotThrow.assertDoesNotThrow(AssertDoesNotThrow.java:49)
+	... 6 more
 

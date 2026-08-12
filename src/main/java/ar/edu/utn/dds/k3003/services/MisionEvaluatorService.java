@@ -74,18 +74,26 @@ public class MisionEvaluatorService {
    * Obtiene las donaciones y verifica que tenga 20+ con estado ACEPTADA.
    */
   private boolean evaluarDonacionesExitosas(String donadorID) {
-    List<DonacionDTO> donaciones = fachadaDonaciones.buscarPorDonadorYFechaInicio(donadorID, null);
-    
-    if (donaciones == null || donaciones.isEmpty()) {
-      return false;
+    return contarDonacionesAceptadas(donadorID) >= 20;
+  }
+
+  /**
+   * Cuenta las donaciones en estado ACEPTADA de un donador. Se usa tanto para evaluar
+   * DONACIONES_EXITOSAS como para detectar pérdida de progreso cuando ese conteo cae
+   * por debajo de 20 (ej: al recibir una queja que revierte el estado de una donación).
+   */
+  public long contarDonacionesAceptadas(String donadorID) {
+    try {
+      List<DonacionDTO> donaciones = fachadaDonaciones.buscarPorDonadorYFechaInicio(donadorID, null);
+      if (donaciones == null) {
+        return 0;
+      }
+      return donaciones.stream()
+          .filter(d -> EstadoDonacionEnum.ACEPTADA.equals(d.estado()))
+          .count();
+    } catch (Exception e) {
+      return 0;
     }
-
-    // Contar donaciones aceptadas (sin quejas = asumimos estado ACEPTADA)
-    long donacionesAceptadas = donaciones.stream()
-        .filter(d -> EstadoDonacionEnum.ACEPTADA.equals(d.estado()))
-        .count();
-
-    return donacionesAceptadas >= 20;
   }
 
   /**

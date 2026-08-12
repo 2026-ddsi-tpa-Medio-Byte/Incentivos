@@ -6,6 +6,7 @@ import ar.edu.utn.dds.k3003.model.PerfilIncentivos;
 import ar.edu.utn.dds.k3003.repositories.PerfilIncentivosRepository;
 import ar.edu.utn.dds.k3003.repositories.InsigniaRepository;
 import ar.edu.utn.dds.k3003.repositories.MisionRepository;
+import ar.edu.utn.dds.k3003.scheduler.ProcesamientoMisionesScheduler;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,11 +19,14 @@ public class FachadaAdminController {
     private final PerfilIncentivosRepository perfilRepo;
     private final InsigniaRepository insigniaRepo;
     private final MisionRepository misionRepo;
+    private final ProcesamientoMisionesScheduler misionesScheduler;
 
-    public FachadaAdminController(PerfilIncentivosRepository perfilRepo, InsigniaRepository insigniaRepo, MisionRepository misionRepo) {
+    public FachadaAdminController(PerfilIncentivosRepository perfilRepo, InsigniaRepository insigniaRepo,
+            MisionRepository misionRepo, ProcesamientoMisionesScheduler misionesScheduler) {
         this.perfilRepo = perfilRepo;
         this.insigniaRepo = insigniaRepo;
         this.misionRepo = misionRepo;
+        this.misionesScheduler = misionesScheduler;
     }
 
     @GetMapping("/insignias")
@@ -47,6 +51,17 @@ public class FachadaAdminController {
         misionRepo.deleteAll();
         perfilRepo.deleteAll();
         return ResponseEntity.ok("database.cleared");
+    }
+
+    /**
+     * Dispara manualmente el mismo batch que corre el Cron-Job (procesar a todos los
+     * donadores con misión asignada). Pensado para demos/correcciones, para no depender
+     * de esperar al intervalo configurado en incentivos.cron.intervalo-ms.
+     */
+    @PostMapping("/procesar-pendientes")
+    public ResponseEntity<String> procesarPendientes() {
+        misionesScheduler.procesarDonadoresConMisionAsignada();
+        return ResponseEntity.ok("procesamiento.disparado");
     }
 
 }

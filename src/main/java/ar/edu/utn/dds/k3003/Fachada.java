@@ -5,6 +5,7 @@ import ar.edu.utn.dds.k3003.dtos.donaciones.EstadoDonacionEnum;
 import ar.edu.utn.dds.k3003.dtos.incentivos.CategoriaDonadorEnum;
 import ar.edu.utn.dds.k3003.dtos.incentivos.InsigniaDTO;
 import ar.edu.utn.dds.k3003.dtos.incentivos.MisionDTO;
+import ar.edu.utn.dds.k3003.dtos.incentivos.TipoMisionEnum;
 import ar.edu.utn.dds.k3003.fachadas.FachadaDonaciones;
 import ar.edu.utn.dds.k3003.fachadas.FachadaDonadoresYEntidades;
 import ar.edu.utn.dds.k3003.fachadas.FachadaIncentivos;
@@ -308,6 +309,7 @@ public class Fachada implements FachadaIncentivos {
   @Override
   public void procesarDonador(String donadorID) throws NoSuchElementException {
     fachadaDonadoresYEntidades.buscarDonadorPorID(donadorID);
+    revisarPerdidaDeProgreso(donadorID);
     DonacionDTO donacionAProcesar = fachadaDonaciones.buscarPorDonadorYFechaInicio(donadorID, null).getFirst();
     if (donacionAProcesar.estado().equals(EstadoDonacionEnum.ACEPTADA)) { // Donacion OK
       MisionDTO misionActual = this.getMisionEnCursoDeDonador(donadorID);
@@ -343,8 +345,60 @@ public class Fachada implements FachadaIncentivos {
     }
   }
 
+  /**
+   * Detecta pérdida de progreso: si el donador ya tiene la insignia de una misión
+   * DONACIONES_EXITOSAS (requería 20 donaciones ACEPTADA) pero, por quejas recibidas,
+   * ahora tiene menos de 20, se le retira la insignia, vuelve a la categoría de inicio
+   * de esa misión (local y en el módulo Donadores y Entidades) y la misión vuelve a
+   * quedar "en curso" para que la tenga que volver a cumplir.
+   *
+   * Solo aplica al camino JPA (producción); el repositorio en memoria es exclusivamente
+   * para los tests de contrato de la cátedra, que no ejercitan este escenario.
+   */
+  private void revisarPerdidaDeProgreso(String donadorID) {
+    if (!useJpa) {
+      return;
+    }
+    PerfilIncentivos perfil = perfilJpaRepository.findById(donadorID).orElse(null);
+    if (perfil == null || perfil.getInsignias() == null || perfil.getInsignias().isEmpty()) {
+      return;
+    }
 
+    List<Mision> misionesDonacionesExitosas = misionJpaRepository.findAll().stream()
+        .filter(m -> m.getTipo() == TipoMisionEnum.DONACIONES_EXITOSAS && m.getInsigniaID() != null)
+        .toList();
+    if (misionesDonacionesExitosas.isEmpty()) {
+      return;
+    }
 
+    boolean huboRegresion = false;
+    for (Mision mision : misionesDonacionesExitosas) {
+      boolean tieneInsignia = perfil.getInsignias().stream()
+          .anyMatch(i -> mision.getInsigniaID().equals(i.getId()));
+      if (!tieneInsignia) {
+        continue;
+      }
+
+      long aceptadas = misionEvaluatorService.contarDonacionesAceptadas(donadorID);
+      if (aceptadas >= 20) {
+        continue;
+      }
+
+      // orphanRemoval=true en PerfilIncentivos.insignias: sacarla de la lista la borra
+      // de la tabla insignias, no solo desvincula al donador.
+      perfil.getInsignias().removeIf(i -> mision.getInsigniaID().equals(i.getId()));
+      if (mision.getCategoriaInicio() != null) {
+        fachadaDonadoresYEntidades.modifcarCategoria(donadorID, mision.getCategoriaInicio().toString());
+        perfil.agregarCategoria(mision.getCategoriaInicio());
+      }
+      perfil.setMisionActualID(mision.getId());
+      huboRegresion = true;
+    }
+
+    if (huboRegresion) {
+      perfilJpaRepository.save(perfil);
+    }
+  }
 
 
 }
