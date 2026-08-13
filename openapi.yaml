@@ -2,7 +2,16 @@ openapi: 3.0.0
 info:
   version: v1
   title: API Incentivos - 2026 - DDSI - TPA
-  description: API del componente de Incentivos
+  description: >
+    API del componente de Incentivos.
+
+
+    Entrega 4: además de los endpoints documentados abajo, un Cron-Job interno
+    (`ProcesamientoMisionesScheduler`) corre cada 60s (configurable con la env var
+    `INCENTIVOS_CRON_INTERVALO_MS`) y ejecuta automáticamente la misma lógica de
+    `POST /donadores/{donadorID}/procesar` sobre todos los donadores que tienen una misión
+    asignada. `POST /admin/procesar-pendientes` dispara ese mismo batch manualmente, sin
+    esperar el intervalo.
 
 servers:
   - url: https://incentivos-wtbd.onrender.com
@@ -234,7 +243,20 @@ paths:
 
   /donadores/{donadorID}/procesar:
     post:
-      summary: Procesar a un donador (evalúa su misión en curso contra su historial de donaciones y, si cumple, le otorga la insignia y sube de categoría)
+      summary: Procesar a un donador (evalúa su misión en curso y detecta pérdida de progreso)
+      description: >
+        Primero revisa si el donador ya tenía la insignia de una misión DONACIONES_EXITOSAS pero
+        sus donaciones ACEPTADA cayeron por debajo de 20 (por ejemplo, por una queja recibida): en
+        ese caso le retira la insignia, lo vuelve a la categoría de inicio de esa misión (local y
+        en el módulo Donadores y Entidades) y la misión vuelve a quedar en curso. [Entrega 4]
+
+
+        Después evalúa la misión en curso del donador contra su historial de donaciones y, si la
+        cumple, le otorga la insignia y sube de categoría.
+
+
+        Este es el mismo procesamiento que dispara automáticamente el Cron-Job del módulo cada
+        60s (ver `POST /admin/procesar-pendientes`).
       tags: [Donadores]
       parameters:
         - name: donadorID
@@ -247,6 +269,27 @@ paths:
           description: Donador procesado correctamente (sin body)
         '404':
           description: No existe el donador indicado, o no tiene donaciones para evaluar
+
+  # ---------------- ADMIN (Entrega 4) ----------------
+  /admin/procesar-pendientes:
+    post:
+      summary: Disparar manualmente el batch del Cron-Job
+      description: >
+        Ejecuta on-demand el mismo procesamiento que corre automáticamente cada
+        `incentivos.cron.intervalo-ms` (60s por default): recorre todos los donadores con una
+        misión asignada (`misionActualID` no nulo) y les corre la lógica de
+        `POST /donadores/{donadorID}/procesar` a cada uno, incluida la detección de pérdida de
+        progreso. Si el procesamiento de alguno falla, no frena al resto del batch. Pensado para
+        demos y correcciones, para no depender de esperar el intervalo configurado.
+      tags: [Admin]
+      responses:
+        '200':
+          description: Batch disparado y completado
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: procesamiento.disparado
 
 components:
   schemas:
