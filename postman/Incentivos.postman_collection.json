@@ -1,0 +1,2942 @@
+{
+  "info": {
+    "_postman_id": "pm-0000005c-0000-4000-8000-000000000000",
+    "name": "DonaTrack - Incentivos (Entrega 3 + Entrega 4)",
+    "description": "Colección autocontenida para el módulo Incentivos de DonaTrack. Pensada para correr entera con \"Run collection\" sin tocar nada a mano: todos los IDs se generan solos por corrida (variable runId), así que se puede repetir tantas veces como haga falta.\n\nOrden recomendado: correr los folders en el orden en que aparecen (00 a 06). El folder 03 depende de que haya corrido el 02 antes (usa esa misión/insignia de negocio).\n\n⚠ LÍMITE CONOCIDO en 05 y 06 (confirmado probando la API en vivo): toda donación nueva nace en estado INGRESADA, sin importar qué \"estado\" le mandes al crearla -- Donaciones lo ignora. Como /procesar exige la donación ACEPTADA, esos folders arman y prueban todo el setup (donador, insignia, misión, asignación) pero los checks finales de \"insignia otorgada\" quedan informativos: no van a pasar hasta que las donaciones pasen por el circuito real de Logística (necesidad + matchmaking/cola + reportar entrega), que esta colección no automatiza. Los pm.test de esos pasos finales están armados para no romper la corrida (console.warn en vez de assert) -- lean el mensaje en cada uno.\n\n⚠ Los folders 05 y 06 escriben datos reales en los servicios compartidos de Donaciones (donatrack-donaciones.onrender.com) y Donadores y Entidades (donadoresyentidadesv2.onrender.com), que son de otros módulos/equipos. Como los IDs son únicos por corrida no pisan nada existente, pero tampoco se limpian solos (no hay un /admin/clear equivalente documentado en esos módulos desde acá).\n\nNo cubierto: las misiones DONACIONES_ASCENDENTES y REVOLUCION_DONADORA no tienen folder de flujo real automatizado (la primera depende del orden en que Donaciones devuelve la lista, que esta colección no controla, y la segunda solo suma volumen sin agregar nada nuevo al patrón ya cubierto en el folder 06). El paso de \"generar una queja\" del folder 06 queda manual porque el cliente HTTP de Incentivos hacia Donaciones no tiene ese método implementado (ver folder 06, item 29).\n\nPara ver el detalle de cada corrida: View > Show Postman Console antes de correr el Runner -- cada request loguea su status y su body de respuesta.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "id": "pm-00000002-0000-4000-8000-000000000000",
+      "name": "00 - Reset (solo datos de Incentivos)",
+      "item": [
+        {
+          "id": "pm-00000001-0000-4000-8000-000000000000",
+          "name": "POST /admin/clear",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('runId', Date.now().toString());",
+                  "const runId = pm.collectionVariables.get('runId');",
+                  "const ids = {",
+                  "  insigniaCrudId: 'insignia-crud-' + runId,",
+                  "  misionCrudId: 'mision-crud-' + runId,",
+                  "  donadorCrudId: 'donador-crud-' + runId,",
+                  "  insigniaNegocioId: 'insignia-neg-' + runId,",
+                  "  misionNegocioId: 'mision-neg-' + runId,",
+                  "  donadorCompletitudId: 'postman-comp-' + runId,",
+                  "  misionCompletitudId: 'mision-comp-' + runId,",
+                  "  insigniaCompletitudId: 'insignia-comp-' + runId,",
+                  "  donadorExitosasId: 'postman-exi-' + runId,",
+                  "  misionExitosasId: 'mision-exi-' + runId,",
+                  "  insigniaExitosasId: 'insignia-exi-' + runId",
+                  "};",
+                  "Object.keys(ids).forEach((k) => pm.collectionVariables.set(k, ids[k]));",
+                  "console.log('Nueva corrida, runId =', runId);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- POST /admin/clear ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseIncentivos}}/admin/clear"
+          },
+          "response": [],
+          "description": "Borra insignias, misiones y perfiles de la base de Incentivos. No toca Donaciones ni Donadores y Entidades. Se corre primero para que la colección sea re-ejecutable desde cero: acá se generan (siempre de nuevo, aunque ya hayas corrido la colección antes) todos los IDs únicos de esta corrida."
+        }
+      ],
+      "description": "Deja la base de Incentivos limpia y genera IDs frescos antes de correr el resto de la colección."
+    },
+    {
+      "id": "pm-00000019-0000-4000-8000-000000000000",
+      "name": "01 - CRUD directo /api (misiones, insignias, donadores locales)",
+      "item": [
+        {
+          "id": "pm-00000003-0000-4000-8000-000000000000",
+          "name": "01 POST /api/insignias - crear",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 01 POST /api/insignias - crear ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 201', () => pm.expect(pm.response.code, pm.response.text()).to.eql(201));",
+                  "pm.test('Devuelve el id enviado', () => pm.expect(pm.response.json().id).to.eql(pm.collectionVariables.get('insigniaCrudId')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseIncentivos}}/api/insignias",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{insigniaCrudId}}\",\n  \"nombre\": \"Insignia CRUD\",\n  \"descripcion\": \"Creada por la colección de Postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-00000004-0000-4000-8000-000000000000",
+          "name": "02 GET /api/insignias - listar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 02 GET /api/insignias - listar ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));",
+                  "pm.test('Incluye la insignia creada', () => { const ids = pm.response.json().map(i => i.id); pm.expect(ids).to.include(pm.collectionVariables.get('insigniaCrudId')); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseIncentivos}}/api/insignias"
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-00000005-0000-4000-8000-000000000000",
+          "name": "03 GET /api/insignias/{id} - existente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 03 GET /api/insignias/{id} - existente ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseIncentivos}}/api/insignias/{{insigniaCrudId}}",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-00000006-0000-4000-8000-000000000000",
+          "name": "04 PUT /api/insignias/{id} - actualizar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 04 PUT /api/insignias/{id} - actualizar ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));",
+                  "pm.test('Nombre actualizado', () => pm.expect(pm.response.json().nombre).to.eql('Insignia CRUD (editada)'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseIncentivos}}/api/insignias/{{insigniaCrudId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Insignia CRUD (editada)\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-00000007-0000-4000-8000-000000000000",
+          "name": "05 GET /api/insignias/{id} - inexistente -> 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 05 GET /api/insignias/{id} - inexistente -> 404 ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 404', () => pm.expect(pm.response.code, pm.response.text()).to.eql(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseIncentivos}}/api/insignias/no-existe-{{runId}}",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-00000008-0000-4000-8000-000000000000",
+          "name": "06 POST /api/misiones - crear",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 06 POST /api/misiones - crear ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 201', () => pm.expect(pm.response.code, pm.response.text()).to.eql(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseIncentivos}}/api/misiones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{misionCrudId}}\",\n  \"nombre\": \"Mision CRUD\",\n  \"insigniaID\": \"{{insigniaCrudId}}\",\n  \"categoriaInicio\": \"OCASIONAL\",\n  \"categoriaFin\": \"COLABORADOR\",\n  \"tipo\": \"COMPLETITUD\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-00000009-0000-4000-8000-000000000000",
+          "name": "07 GET /api/misiones - listar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 07 GET /api/misiones - listar ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));",
+                  "pm.test('Incluye la mision creada', () => { const ids = pm.response.json().map(m => m.id); pm.expect(ids).to.include(pm.collectionVariables.get('misionCrudId')); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseIncentivos}}/api/misiones",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-0000000a-0000-4000-8000-000000000000",
+          "name": "08 GET /api/misiones/{id} - existente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 08 GET /api/misiones/{id} - existente ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseIncentivos}}/api/misiones/{{misionCrudId}}",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-0000000b-0000-4000-8000-000000000000",
+          "name": "09 PUT /api/misiones/{id} - actualizar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 09 PUT /api/misiones/{id} - actualizar ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseIncentivos}}/api/misiones/{{misionCrudId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Mision CRUD (editada)\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-0000000c-0000-4000-8000-000000000000",
+          "name": "10 GET /api/misiones/{id} - inexistente -> 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 10 GET /api/misiones/{id} - inexistente -> 404 ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 404', () => pm.expect(pm.response.code, pm.response.text()).to.eql(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseIncentivos}}/api/misiones/no-existe-{{runId}}",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-0000000d-0000-4000-8000-000000000000",
+          "name": "11 POST /api/donadores - crear (entidad local de Incentivos)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 11 POST /api/donadores - crear (entidad local de Incentivos) ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 201', () => pm.expect(pm.response.code, pm.response.text()).to.eql(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseIncentivos}}/api/donadores",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{donadorCrudId}}\",\n  \"nombre\": \"Postman\",\n  \"apellido\": \"CRUD\",\n  \"edad\": 30,\n  \"email\": \"postman-crud-{{runId}}@test.com\",\n  \"nroDocumento\": \"{{runId}}\",\n  \"domicilio\": \"Calle Test 123\",\n  \"estado\": \"VERIFICADO\",\n  \"categoria\": \"OCASIONAL\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "Ojo: este es un modelo \"Donador\" que vive SOLO en la base de Incentivos (DonadorController/DonadorRepository), distinto del donador real del módulo Donadores y Entidades que se usa en los folders 05 y 06."
+        },
+        {
+          "id": "pm-0000000e-0000-4000-8000-000000000000",
+          "name": "12 GET /api/donadores - listar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 12 GET /api/donadores - listar ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseIncentivos}}/api/donadores",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-0000000f-0000-4000-8000-000000000000",
+          "name": "13 GET /api/donadores/{id} - existente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 13 GET /api/donadores/{id} - existente ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseIncentivos}}/api/donadores/{{donadorCrudId}}",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-00000010-0000-4000-8000-000000000000",
+          "name": "14 PUT /api/donadores/{id} - actualizar categoria",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 14 PUT /api/donadores/{id} - actualizar categoria ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));",
+                  "pm.test('Categoria actualizada', () => pm.expect(pm.response.json().categoria).to.eql('COLABORADOR'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseIncentivos}}/api/donadores/{{donadorCrudId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoria\": \"COLABORADOR\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-00000011-0000-4000-8000-000000000000",
+          "name": "15 GET /api/donadores/{id} - inexistente -> 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 15 GET /api/donadores/{id} - inexistente -> 404 ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 404', () => pm.expect(pm.response.code, pm.response.text()).to.eql(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseIncentivos}}/api/donadores/no-existe-{{runId}}",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-00000012-0000-4000-8000-000000000000",
+          "name": "16 DELETE /api/donadores/{id}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 16 DELETE /api/donadores/{id} ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 204', () => pm.expect(pm.response.code, pm.response.text()).to.eql(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseIncentivos}}/api/donadores/{{donadorCrudId}}",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-00000013-0000-4000-8000-000000000000",
+          "name": "17 GET /api/donadores/{id} - confirmar borrado -> 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 17 GET /api/donadores/{id} - confirmar borrado -> 404 ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 404', () => pm.expect(pm.response.code, pm.response.text()).to.eql(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseIncentivos}}/api/donadores/{{donadorCrudId}}",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-00000014-0000-4000-8000-000000000000",
+          "name": "18 DELETE /api/misiones/{id}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 18 DELETE /api/misiones/{id} ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 204', () => pm.expect(pm.response.code, pm.response.text()).to.eql(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseIncentivos}}/api/misiones/{{misionCrudId}}",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-00000015-0000-4000-8000-000000000000",
+          "name": "19 DELETE /api/insignias/{id}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 19 DELETE /api/insignias/{id} ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 204', () => pm.expect(pm.response.code, pm.response.text()).to.eql(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseIncentivos}}/api/insignias/{{insigniaCrudId}}",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-00000016-0000-4000-8000-000000000000",
+          "name": "20 DELETE /api/misiones/{id} - ya borrada -> 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 20 DELETE /api/misiones/{id} - ya borrada -> 404 ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 404', () => pm.expect(pm.response.code, pm.response.text()).to.eql(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseIncentivos}}/api/misiones/{{misionCrudId}}",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-00000017-0000-4000-8000-000000000000",
+          "name": "21 DELETE /api/insignias/{id} - ya borrada -> 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 21 DELETE /api/insignias/{id} - ya borrada -> 404 ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 404', () => pm.expect(pm.response.code, pm.response.text()).to.eql(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseIncentivos}}/api/insignias/{{insigniaCrudId}}",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-00000018-0000-4000-8000-000000000000",
+          "name": "22 DELETE /api/donadores/{id} - ya borrado -> 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 22 DELETE /api/donadores/{id} - ya borrado -> 404 ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 404', () => pm.expect(pm.response.code, pm.response.text()).to.eql(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseIncentivos}}/api/donadores/{{donadorCrudId}}",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        }
+      ],
+      "description": "Superficie REST cruda (MisionController/InsigniaController/DonadorController), 100% autocontenida: no depende de Donaciones ni de Donadores y Entidades. Segura de re-ejecutar: usa IDs únicos por corrida y limpia lo que crea."
+    },
+    {
+      "id": "pm-00000022-0000-4000-8000-000000000000",
+      "name": "02 - API de negocio (IncentivosController: /insignias, /misiones)",
+      "item": [
+        {
+          "id": "pm-0000001a-0000-4000-8000-000000000000",
+          "name": "01 POST /insignias - crear",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 01 POST /insignias - crear ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseIncentivos}}/insignias",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{insigniaNegocioId}}\",\n  \"nombre\": \"Insignia Negocio\",\n  \"descripcion\": \"Creada por la colección de Postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-0000001b-0000-4000-8000-000000000000",
+          "name": "02 GET /insignias - listar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 02 GET /insignias - listar ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));",
+                  "pm.test('Incluye la insignia creada', () => { const ids = pm.response.json().map(i => i.id); pm.expect(ids).to.include(pm.collectionVariables.get('insigniaNegocioId')); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseIncentivos}}/insignias",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-0000001c-0000-4000-8000-000000000000",
+          "name": "03 GET /insignias/{id} - existente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 03 GET /insignias/{id} - existente ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseIncentivos}}/insignias/{{insigniaNegocioId}}",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-0000001d-0000-4000-8000-000000000000",
+          "name": "04 GET /insignias/{id} - inexistente -> 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 04 GET /insignias/{id} - inexistente -> 404 ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 404', () => pm.expect(pm.response.code, pm.response.text()).to.eql(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseIncentivos}}/insignias/no-existe-{{runId}}",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-0000001e-0000-4000-8000-000000000000",
+          "name": "05 POST /misiones - crear",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 05 POST /misiones - crear ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseIncentivos}}/misiones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{misionNegocioId}}\",\n  \"nombre\": \"Mision Negocio\",\n  \"insigniaID\": \"{{insigniaNegocioId}}\",\n  \"categoriaInicio\": \"OCASIONAL\",\n  \"categoriaFin\": \"COLABORADOR\",\n  \"tipo\": \"COMPLETITUD\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-0000001f-0000-4000-8000-000000000000",
+          "name": "06 GET /misiones - listar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 06 GET /misiones - listar ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));",
+                  "pm.test('Incluye la mision creada', () => { const ids = pm.response.json().map(m => m.id); pm.expect(ids).to.include(pm.collectionVariables.get('misionNegocioId')); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseIncentivos}}/misiones",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-00000020-0000-4000-8000-000000000000",
+          "name": "07 GET /misiones/{id} - existente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 07 GET /misiones/{id} - existente ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseIncentivos}}/misiones/{{misionNegocioId}}",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-00000021-0000-4000-8000-000000000000",
+          "name": "08 GET /misiones/{id} - inexistente -> 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 08 GET /misiones/{id} - inexistente -> 404 ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 404', () => pm.expect(pm.response.code, pm.response.text()).to.eql(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseIncentivos}}/misiones/no-existe-{{runId}}",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        }
+      ],
+      "description": "Los mismos recursos que el folder 01 pero por el camino de negocio (via Fachada), que es el que usan los demás endpoints de /donadores/*."
+    },
+    {
+      "id": "pm-00000028-0000-4000-8000-000000000000",
+      "name": "03 - Casos de error (/donadores/*)",
+      "item": [
+        {
+          "id": "pm-00000023-0000-4000-8000-000000000000",
+          "name": "01 GET /donadores/{id}/insignias - donador sin perfil -> 200 vacio",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 01 GET /donadores/{id}/insignias - donador sin perfil -> 200 vacio ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));",
+                  "pm.test('Lista vacia', () => pm.expect(pm.response.json()).to.eql([]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseIncentivos}}/donadores/no-existe-{{runId}}/insignias",
+            "header": []
+          },
+          "response": [],
+          "description": "getInsigniasDeDonador atrapa el NoSuchElementException y devuelve lista vacía en vez de 404 (ver IncentivosController)."
+        },
+        {
+          "id": "pm-00000024-0000-4000-8000-000000000000",
+          "name": "02 GET /donadores/{id}/mision-actual - inexistente -> 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 02 GET /donadores/{id}/mision-actual - inexistente -> 404 ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 404', () => pm.expect(pm.response.code, pm.response.text()).to.eql(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseIncentivos}}/donadores/no-existe-{{runId}}/mision-actual",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-00000025-0000-4000-8000-000000000000",
+          "name": "03 POST /donadores/{id}/mision-actual - body null -> 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 03 POST /donadores/{id}/mision-actual - body null -> 400 ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 400', () => pm.expect(pm.response.code, pm.response.text()).to.eql(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseIncentivos}}/donadores/no-existe-{{runId}}/mision-actual",
+            "body": {
+              "mode": "raw",
+              "raw": "null",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "Fachada.asignarMisionADonador tira RuntimeException si el MisionDTO es null, antes incluso de validar que el donador exista."
+        },
+        {
+          "id": "pm-00000026-0000-4000-8000-000000000000",
+          "name": "04 POST /donadores/{id}/mision-actual - donador inexistente -> 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 04 POST /donadores/{id}/mision-actual - donador inexistente -> 404 ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 404', () => pm.expect(pm.response.code, pm.response.text()).to.eql(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseIncentivos}}/donadores/no-existe-{{runId}}/mision-actual",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{misionNegocioId}}\",\n  \"nombre\": \"Mision Negocio\",\n  \"insigniaID\": \"{{insigniaNegocioId}}\",\n  \"categoriaInicio\": \"OCASIONAL\",\n  \"categoriaFin\": \"COLABORADOR\",\n  \"tipo\": \"COMPLETITUD\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "Requiere que el folder 02 haya corrido antes (usa insigniaNegocioId/misionNegocioId). buscarDonadorPorID contra Donadores y Entidades falla -> NoSuchElementException -> 404."
+        },
+        {
+          "id": "pm-00000027-0000-4000-8000-000000000000",
+          "name": "05 POST /donadores/{id}/procesar - donador inexistente -> 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 05 POST /donadores/{id}/procesar - donador inexistente -> 404 ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 404', () => pm.expect(pm.response.code, pm.response.text()).to.eql(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseIncentivos}}/donadores/no-existe-{{runId}}/procesar",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        }
+      ],
+      "description": "Corré este folder después del 02 (usa la misión/insignia de negocio creadas ahí)."
+    },
+    {
+      "id": "pm-0000002d-0000-4000-8000-000000000000",
+      "name": "04 - Admin",
+      "item": [
+        {
+          "id": "pm-00000029-0000-4000-8000-000000000000",
+          "name": "GET /admin/perfiles",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- GET /admin/perfiles ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseIncentivos}}/admin/perfiles",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-0000002a-0000-4000-8000-000000000000",
+          "name": "GET /admin/misiones",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- GET /admin/misiones ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseIncentivos}}/admin/misiones",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-0000002b-0000-4000-8000-000000000000",
+          "name": "GET /admin/insignias",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- GET /admin/insignias ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseIncentivos}}/admin/insignias",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-0000002c-0000-4000-8000-000000000000",
+          "name": "POST /admin/procesar-pendientes (Entrega 4)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- POST /admin/procesar-pendientes (Entrega 4) ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseIncentivos}}/admin/procesar-pendientes",
+            "header": []
+          },
+          "response": [],
+          "description": "Dispara manualmente el mismo batch que corre el Cron-Job cada 60s. Acá todavía no hay ningún donador con misión asignada (eso pasa en los folders 05/06), así que solo confirma que el batch corre sin explotar con 0 pendientes."
+        }
+      ],
+      "description": "Endpoints de soporte: inspección directa de las tablas y disparo manual del Cron-Job."
+    },
+    {
+      "id": "pm-0000003b-0000-4000-8000-000000000000",
+      "name": "05 - Flujo real: mision COMPLETITUD (crea datos en Donaciones y Donadores y Entidades)",
+      "item": [
+        {
+          "id": "pm-0000002e-0000-4000-8000-000000000000",
+          "name": "01 [Donadores y Entidades] POST /donadores - crear donador de prueba",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 01 [Donadores y Entidades] POST /donadores - crear donador de prueba ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 2xx', () => pm.expect(pm.response.code, pm.response.text()).to.be.within(200, 299));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonadoresYEntidades}}/donadores",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{donadorCompletitudId}}\",\n  \"nombre\": \"Postman\",\n  \"apellido\": \"Completitud\",\n  \"edad\": 28,\n  \"email\": \"postman-comp-{{runId}}@test.com\",\n  \"nroDocumento\": \"{{runId}}\",\n  \"domicilio\": \"Calle Test 123\",\n  \"estado\": \"VERIFICADO\",\n  \"categoria\": \"OCASIONAL\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "ESCRIBE en la base compartida de Donadores y Entidades (servicio de otro equipo/módulo, en vivo en Render). El id es único por corrida (timestamp), así que no pisa datos de nadie, pero tampoco se borra solo -- no hay endpoint de limpieza documentado para ese módulo desde acá."
+        },
+        {
+          "id": "pm-0000002f-0000-4000-8000-000000000000",
+          "name": "02 [Donadores y Entidades] GET /donadores/{id} - confirmar creación",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 02 [Donadores y Entidades] GET /donadores/{id} - confirmar creación ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));",
+                  "pm.test('Categoria inicial OCASIONAL', () => pm.expect(pm.response.json().categoria).to.eql('OCASIONAL'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseDonadoresYEntidades}}/donadores/{{donadorCompletitudId}}",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-00000030-0000-4000-8000-000000000000",
+          "name": "03 [Donaciones] POST /donaciones - producto prod-a",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 03 [Donaciones] POST /donaciones - producto prod-a ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "console.log('Donacion creada?', ok, '- status', pm.response.code);",
+                  "if (!ok) { console.warn('Donaciones devolvió error (a veces pasa un 500 de Logística relayado bajo carga, ver mensaje arriba), pero la donación suele quedar igual persistida -- el item 06 lo confirma contando lo que realmente existe.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonaciones}}/donaciones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorCompletitudId}}\",\n  \"depositoID\": \"DEP-UTN-01\",\n  \"descripcion\": \"Donacion de prueba Postman (prod-a)\",\n  \"productoID\": \"prod-a-{{runId}}\",\n  \"cantidad\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "ESCRIBE en la base compartida de Donaciones (servicio de otro módulo, en vivo en Render). No mandamos \"id\" (el servidor lo asigna y rechaza si lo mandás vos) ni \"estado\" (toda donación nace en INGRESADA sin importar lo que mandes -- ver folder description para el porqué). No hacemos pm.test acá a propósito: confirmado en vivo que a veces Donaciones devuelve error (500 de Logística relayado) aunque la donación haya quedado creada igual -- el conteo real se valida en el siguiente item."
+        },
+        {
+          "id": "pm-00000031-0000-4000-8000-000000000000",
+          "name": "04 [Donaciones] POST /donaciones - producto prod-b",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 04 [Donaciones] POST /donaciones - producto prod-b ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "console.log('Donacion creada?', ok, '- status', pm.response.code);",
+                  "if (!ok) { console.warn('Donaciones devolvió error (a veces pasa un 500 de Logística relayado bajo carga, ver mensaje arriba), pero la donación suele quedar igual persistida -- el item 06 lo confirma contando lo que realmente existe.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonaciones}}/donaciones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorCompletitudId}}\",\n  \"depositoID\": \"DEP-UTN-01\",\n  \"descripcion\": \"Donacion de prueba Postman (prod-b)\",\n  \"productoID\": \"prod-b-{{runId}}\",\n  \"cantidad\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "ESCRIBE en la base compartida de Donaciones (servicio de otro módulo, en vivo en Render). No mandamos \"id\" (el servidor lo asigna y rechaza si lo mandás vos) ni \"estado\" (toda donación nace en INGRESADA sin importar lo que mandes -- ver folder description para el porqué). No hacemos pm.test acá a propósito: confirmado en vivo que a veces Donaciones devuelve error (500 de Logística relayado) aunque la donación haya quedado creada igual -- el conteo real se valida en el siguiente item."
+        },
+        {
+          "id": "pm-00000032-0000-4000-8000-000000000000",
+          "name": "05 [Donaciones] POST /donaciones - producto prod-c",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 05 [Donaciones] POST /donaciones - producto prod-c ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "console.log('Donacion creada?', ok, '- status', pm.response.code);",
+                  "if (!ok) { console.warn('Donaciones devolvió error (a veces pasa un 500 de Logística relayado bajo carga, ver mensaje arriba), pero la donación suele quedar igual persistida -- el item 06 lo confirma contando lo que realmente existe.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonaciones}}/donaciones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorCompletitudId}}\",\n  \"depositoID\": \"DEP-UTN-01\",\n  \"descripcion\": \"Donacion de prueba Postman (prod-c)\",\n  \"productoID\": \"prod-c-{{runId}}\",\n  \"cantidad\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "ESCRIBE en la base compartida de Donaciones (servicio de otro módulo, en vivo en Render). No mandamos \"id\" (el servidor lo asigna y rechaza si lo mandás vos) ni \"estado\" (toda donación nace en INGRESADA sin importar lo que mandes -- ver folder description para el porqué). No hacemos pm.test acá a propósito: confirmado en vivo que a veces Donaciones devuelve error (500 de Logística relayado) aunque la donación haya quedado creada igual -- el conteo real se valida en el siguiente item."
+        },
+        {
+          "id": "pm-00000033-0000-4000-8000-000000000000",
+          "name": "06 [Donaciones] GET /donaciones?donadorID={id} - confirmar 3 productos distintos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 06 [Donaciones] GET /donaciones?donadorID={id} - confirmar 3 productos distintos ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));",
+                  "const propias = pm.response.json().filter(d => d.donadorID === pm.collectionVariables.get('donadorCompletitudId'));",
+                  "const productos = [...new Set(propias.map(d => d.productoID))];",
+                  "console.log('Productos distintos encontrados:', productos);",
+                  "pm.test('Al menos 3 productos distintos (criterio COMPLETITUD)', () => pm.expect(productos.length).to.be.at.least(3));",
+                  "const propiasEstados = propias.reduce((acc, d) => { acc[d.estado] = (acc[d.estado] || 0) + 1; return acc; }, {});",
+                  "console.log('Estados de las donaciones recién creadas:', JSON.stringify(propiasEstados));",
+                  "console.warn('Estas donaciones nacen en INGRESADA (Donaciones ignora el estado que le mandes al crear), así que /procesar en el paso 11 va a cortar antes de evaluar la misión -- ver items 12/13, son informativos por esto mismo.');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseDonaciones}}/donaciones?donadorID={{donadorCompletitudId}}",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-00000034-0000-4000-8000-000000000000",
+          "name": "07 [Incentivos] POST /insignias - crear insignia de la misión",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 07 [Incentivos] POST /insignias - crear insignia de la misión ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseIncentivos}}/insignias",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{insigniaCompletitudId}}\",\n  \"nombre\": \"Coleccionista\",\n  \"descripcion\": \"Otorgada por donar en 3 productos distintos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-00000035-0000-4000-8000-000000000000",
+          "name": "08 [Incentivos] POST /misiones - crear mision COMPLETITUD",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 08 [Incentivos] POST /misiones - crear mision COMPLETITUD ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseIncentivos}}/misiones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{misionCompletitudId}}\",\n  \"nombre\": \"Completitud\",\n  \"insigniaID\": \"{{insigniaCompletitudId}}\",\n  \"categoriaInicio\": \"OCASIONAL\",\n  \"categoriaFin\": \"COLABORADOR\",\n  \"tipo\": \"COMPLETITUD\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-00000036-0000-4000-8000-000000000000",
+          "name": "09 [Incentivos] POST /donadores/{id}/mision-actual - asignar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 09 [Incentivos] POST /donadores/{id}/mision-actual - asignar ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseIncentivos}}/donadores/{{donadorCompletitudId}}/mision-actual",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{misionCompletitudId}}\",\n  \"nombre\": \"Completitud\",\n  \"insigniaID\": \"{{insigniaCompletitudId}}\",\n  \"categoriaInicio\": \"OCASIONAL\",\n  \"categoriaFin\": \"COLABORADOR\",\n  \"tipo\": \"COMPLETITUD\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-00000037-0000-4000-8000-000000000000",
+          "name": "10 [Incentivos] GET /donadores/{id}/insignias - antes de procesar (debe estar vacio)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 10 [Incentivos] GET /donadores/{id}/insignias - antes de procesar (debe estar vacio) ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));",
+                  "pm.test('Vacio antes de procesar', () => pm.expect(pm.response.json()).to.eql([]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseIncentivos}}/donadores/{{donadorCompletitudId}}/insignias",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-00000038-0000-4000-8000-000000000000",
+          "name": "11 [Incentivos] POST /donadores/{id}/procesar - disparar evaluacion",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 11 [Incentivos] POST /donadores/{id}/procesar - disparar evaluacion ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseIncentivos}}/donadores/{{donadorCompletitudId}}/procesar",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-00000039-0000-4000-8000-000000000000",
+          "name": "12 [Incentivos] GET /donadores/{id}/insignias - estado tras procesar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 12 [Incentivos] GET /donadores/{id}/insignias - estado tras procesar ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));",
+                  "const ids = pm.response.json().map(i => i.id);",
+                  "const otorgada = ids.includes(pm.collectionVariables.get('insigniaCompletitudId'));",
+                  "console.log('Insignia otorgada?', otorgada);",
+                  "if (!otorgada) { console.warn('Esperado: las donaciones creadas en este folder quedaron INGRESADA (ver item 06), no ACEPTADA, así que /procesar no llegó a evaluar la misión. Para que esto otorgue la insignia de verdad hace falta el circuito completo de Logística.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseIncentivos}}/donadores/{{donadorCompletitudId}}/insignias",
+            "header": []
+          },
+          "response": [],
+          "description": "No es un pm.test que deba pasar hoy: mientras las donaciones no pasen por el circuito de Logística (necesidad + matchmaking/cola + reportar entrega) para llegar a ACEPTADA, lo esperable es que NO esté otorgada. Ver el mensaje en consola."
+        },
+        {
+          "id": "pm-0000003a-0000-4000-8000-000000000000",
+          "name": "13 [Donadores y Entidades] GET /donadores/{id} - categoria actual",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 13 [Donadores y Entidades] GET /donadores/{id} - categoria actual ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));",
+                  "console.log('Categoria actual:', pm.response.json().categoria, '(esperada COLABORADOR solo si el item 12 mostró la insignia otorgada)');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseDonadoresYEntidades}}/donadores/{{donadorCompletitudId}}",
+            "header": []
+          },
+          "response": [],
+          "description": "Informativo: solo va a mostrar COLABORADOR si el item 12 efectivamente otorgó la insignia (lo que hoy no pasa sin el circuito de Logística)."
+        }
+      ],
+      "description": "⚠ Este folder ESCRIBE datos reales en los servicios compartidos de Donaciones y Donadores y Entidades (no son de este módulo). Podés correrlo las veces que quieras: usa IDs únicos por corrida. LÍMITE CONOCIDO (probado en vivo): toda donación nueva nace en estado INGRESADA -- Donaciones ignora el \"estado\" que le mandes al crearla. Como /procesar exige que la donación esté ACEPTADA, este folder deja todo el setup (donador, insignia, misión, asignación) armado y probado, pero los items 12/13 son informativos, no van a mostrar la insignia otorgada hasta que las donaciones pasen por el circuito real de Logística (necesidad + matchmaking/cola + reportar entrega)."
+    },
+    {
+      "id": "pm-0000005b-0000-4000-8000-000000000000",
+      "name": "06 - Flujo real: mision DONACIONES_EXITOSAS + perdida de progreso",
+      "item": [
+        {
+          "id": "pm-0000003c-0000-4000-8000-000000000000",
+          "name": "01 [Donadores y Entidades] POST /donadores - crear donador de prueba",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 01 [Donadores y Entidades] POST /donadores - crear donador de prueba ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 2xx', () => pm.expect(pm.response.code, pm.response.text()).to.be.within(200, 299));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonadoresYEntidades}}/donadores",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{donadorExitosasId}}\",\n  \"nombre\": \"Postman\",\n  \"apellido\": \"Exitosas\",\n  \"edad\": 33,\n  \"email\": \"postman-exi-{{runId}}@test.com\",\n  \"nroDocumento\": \"{{runId}}\",\n  \"domicilio\": \"Calle Test 456\",\n  \"estado\": \"VERIFICADO\",\n  \"categoria\": \"COLABORADOR\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "⚠ ESCRIBE en la base compartida de Donadores y Entidades."
+        },
+        {
+          "id": "pm-0000003d-0000-4000-8000-000000000000",
+          "name": "02 [Donadores y Entidades] GET /donadores/{id} - confirmar creación",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 02 [Donadores y Entidades] GET /donadores/{id} - confirmar creación ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseDonadoresYEntidades}}/donadores/{{donadorExitosasId}}",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-0000003e-0000-4000-8000-000000000000",
+          "name": "03 [Donaciones] POST /donaciones #1/20",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 03 [Donaciones] POST /donaciones #1/20 ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "console.log('Donacion creada?', ok, '- status', pm.response.code);",
+                  "if (!ok) { console.warn('Donaciones devolvió error (a veces pasa un 500 de Logística relayado bajo carga cuando se manda muchas donaciones seguidas del mismo producto), pero suele quedar igual persistida -- el item 23 confirma el conteo real.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonaciones}}/donaciones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorExitosasId}}\",\n  \"depositoID\": \"DEP-UTN-01\",\n  \"descripcion\": \"Donacion de prueba Postman #1\",\n  \"productoID\": \"prod-exi-{{runId}}\",\n  \"cantidad\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "No hacemos pm.test acá a propósito: bajo carga (20 donaciones seguidas del mismo producto), Donaciones a veces relaya un 500 de Logística aunque la donación quede creada igual. El conteo real se confirma en el item 23."
+        },
+        {
+          "id": "pm-0000003f-0000-4000-8000-000000000000",
+          "name": "04 [Donaciones] POST /donaciones #2/20",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 04 [Donaciones] POST /donaciones #2/20 ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "console.log('Donacion creada?', ok, '- status', pm.response.code);",
+                  "if (!ok) { console.warn('Donaciones devolvió error (a veces pasa un 500 de Logística relayado bajo carga cuando se manda muchas donaciones seguidas del mismo producto), pero suele quedar igual persistida -- el item 23 confirma el conteo real.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonaciones}}/donaciones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorExitosasId}}\",\n  \"depositoID\": \"DEP-UTN-01\",\n  \"descripcion\": \"Donacion de prueba Postman #2\",\n  \"productoID\": \"prod-exi-{{runId}}\",\n  \"cantidad\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "No hacemos pm.test acá a propósito: bajo carga (20 donaciones seguidas del mismo producto), Donaciones a veces relaya un 500 de Logística aunque la donación quede creada igual. El conteo real se confirma en el item 23."
+        },
+        {
+          "id": "pm-00000040-0000-4000-8000-000000000000",
+          "name": "05 [Donaciones] POST /donaciones #3/20",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 05 [Donaciones] POST /donaciones #3/20 ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "console.log('Donacion creada?', ok, '- status', pm.response.code);",
+                  "if (!ok) { console.warn('Donaciones devolvió error (a veces pasa un 500 de Logística relayado bajo carga cuando se manda muchas donaciones seguidas del mismo producto), pero suele quedar igual persistida -- el item 23 confirma el conteo real.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonaciones}}/donaciones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorExitosasId}}\",\n  \"depositoID\": \"DEP-UTN-01\",\n  \"descripcion\": \"Donacion de prueba Postman #3\",\n  \"productoID\": \"prod-exi-{{runId}}\",\n  \"cantidad\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "No hacemos pm.test acá a propósito: bajo carga (20 donaciones seguidas del mismo producto), Donaciones a veces relaya un 500 de Logística aunque la donación quede creada igual. El conteo real se confirma en el item 23."
+        },
+        {
+          "id": "pm-00000041-0000-4000-8000-000000000000",
+          "name": "06 [Donaciones] POST /donaciones #4/20",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 06 [Donaciones] POST /donaciones #4/20 ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "console.log('Donacion creada?', ok, '- status', pm.response.code);",
+                  "if (!ok) { console.warn('Donaciones devolvió error (a veces pasa un 500 de Logística relayado bajo carga cuando se manda muchas donaciones seguidas del mismo producto), pero suele quedar igual persistida -- el item 23 confirma el conteo real.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonaciones}}/donaciones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorExitosasId}}\",\n  \"depositoID\": \"DEP-UTN-01\",\n  \"descripcion\": \"Donacion de prueba Postman #4\",\n  \"productoID\": \"prod-exi-{{runId}}\",\n  \"cantidad\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "No hacemos pm.test acá a propósito: bajo carga (20 donaciones seguidas del mismo producto), Donaciones a veces relaya un 500 de Logística aunque la donación quede creada igual. El conteo real se confirma en el item 23."
+        },
+        {
+          "id": "pm-00000042-0000-4000-8000-000000000000",
+          "name": "07 [Donaciones] POST /donaciones #5/20",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 07 [Donaciones] POST /donaciones #5/20 ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "console.log('Donacion creada?', ok, '- status', pm.response.code);",
+                  "if (!ok) { console.warn('Donaciones devolvió error (a veces pasa un 500 de Logística relayado bajo carga cuando se manda muchas donaciones seguidas del mismo producto), pero suele quedar igual persistida -- el item 23 confirma el conteo real.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonaciones}}/donaciones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorExitosasId}}\",\n  \"depositoID\": \"DEP-UTN-01\",\n  \"descripcion\": \"Donacion de prueba Postman #5\",\n  \"productoID\": \"prod-exi-{{runId}}\",\n  \"cantidad\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "No hacemos pm.test acá a propósito: bajo carga (20 donaciones seguidas del mismo producto), Donaciones a veces relaya un 500 de Logística aunque la donación quede creada igual. El conteo real se confirma en el item 23."
+        },
+        {
+          "id": "pm-00000043-0000-4000-8000-000000000000",
+          "name": "08 [Donaciones] POST /donaciones #6/20",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 08 [Donaciones] POST /donaciones #6/20 ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "console.log('Donacion creada?', ok, '- status', pm.response.code);",
+                  "if (!ok) { console.warn('Donaciones devolvió error (a veces pasa un 500 de Logística relayado bajo carga cuando se manda muchas donaciones seguidas del mismo producto), pero suele quedar igual persistida -- el item 23 confirma el conteo real.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonaciones}}/donaciones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorExitosasId}}\",\n  \"depositoID\": \"DEP-UTN-01\",\n  \"descripcion\": \"Donacion de prueba Postman #6\",\n  \"productoID\": \"prod-exi-{{runId}}\",\n  \"cantidad\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "No hacemos pm.test acá a propósito: bajo carga (20 donaciones seguidas del mismo producto), Donaciones a veces relaya un 500 de Logística aunque la donación quede creada igual. El conteo real se confirma en el item 23."
+        },
+        {
+          "id": "pm-00000044-0000-4000-8000-000000000000",
+          "name": "09 [Donaciones] POST /donaciones #7/20",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 09 [Donaciones] POST /donaciones #7/20 ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "console.log('Donacion creada?', ok, '- status', pm.response.code);",
+                  "if (!ok) { console.warn('Donaciones devolvió error (a veces pasa un 500 de Logística relayado bajo carga cuando se manda muchas donaciones seguidas del mismo producto), pero suele quedar igual persistida -- el item 23 confirma el conteo real.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonaciones}}/donaciones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorExitosasId}}\",\n  \"depositoID\": \"DEP-UTN-01\",\n  \"descripcion\": \"Donacion de prueba Postman #7\",\n  \"productoID\": \"prod-exi-{{runId}}\",\n  \"cantidad\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "No hacemos pm.test acá a propósito: bajo carga (20 donaciones seguidas del mismo producto), Donaciones a veces relaya un 500 de Logística aunque la donación quede creada igual. El conteo real se confirma en el item 23."
+        },
+        {
+          "id": "pm-00000045-0000-4000-8000-000000000000",
+          "name": "10 [Donaciones] POST /donaciones #8/20",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 10 [Donaciones] POST /donaciones #8/20 ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "console.log('Donacion creada?', ok, '- status', pm.response.code);",
+                  "if (!ok) { console.warn('Donaciones devolvió error (a veces pasa un 500 de Logística relayado bajo carga cuando se manda muchas donaciones seguidas del mismo producto), pero suele quedar igual persistida -- el item 23 confirma el conteo real.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonaciones}}/donaciones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorExitosasId}}\",\n  \"depositoID\": \"DEP-UTN-01\",\n  \"descripcion\": \"Donacion de prueba Postman #8\",\n  \"productoID\": \"prod-exi-{{runId}}\",\n  \"cantidad\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "No hacemos pm.test acá a propósito: bajo carga (20 donaciones seguidas del mismo producto), Donaciones a veces relaya un 500 de Logística aunque la donación quede creada igual. El conteo real se confirma en el item 23."
+        },
+        {
+          "id": "pm-00000046-0000-4000-8000-000000000000",
+          "name": "11 [Donaciones] POST /donaciones #9/20",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 11 [Donaciones] POST /donaciones #9/20 ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "console.log('Donacion creada?', ok, '- status', pm.response.code);",
+                  "if (!ok) { console.warn('Donaciones devolvió error (a veces pasa un 500 de Logística relayado bajo carga cuando se manda muchas donaciones seguidas del mismo producto), pero suele quedar igual persistida -- el item 23 confirma el conteo real.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonaciones}}/donaciones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorExitosasId}}\",\n  \"depositoID\": \"DEP-UTN-01\",\n  \"descripcion\": \"Donacion de prueba Postman #9\",\n  \"productoID\": \"prod-exi-{{runId}}\",\n  \"cantidad\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "No hacemos pm.test acá a propósito: bajo carga (20 donaciones seguidas del mismo producto), Donaciones a veces relaya un 500 de Logística aunque la donación quede creada igual. El conteo real se confirma en el item 23."
+        },
+        {
+          "id": "pm-00000047-0000-4000-8000-000000000000",
+          "name": "12 [Donaciones] POST /donaciones #10/20",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 12 [Donaciones] POST /donaciones #10/20 ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "console.log('Donacion creada?', ok, '- status', pm.response.code);",
+                  "if (!ok) { console.warn('Donaciones devolvió error (a veces pasa un 500 de Logística relayado bajo carga cuando se manda muchas donaciones seguidas del mismo producto), pero suele quedar igual persistida -- el item 23 confirma el conteo real.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonaciones}}/donaciones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorExitosasId}}\",\n  \"depositoID\": \"DEP-UTN-01\",\n  \"descripcion\": \"Donacion de prueba Postman #10\",\n  \"productoID\": \"prod-exi-{{runId}}\",\n  \"cantidad\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "No hacemos pm.test acá a propósito: bajo carga (20 donaciones seguidas del mismo producto), Donaciones a veces relaya un 500 de Logística aunque la donación quede creada igual. El conteo real se confirma en el item 23."
+        },
+        {
+          "id": "pm-00000048-0000-4000-8000-000000000000",
+          "name": "13 [Donaciones] POST /donaciones #11/20",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 13 [Donaciones] POST /donaciones #11/20 ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "console.log('Donacion creada?', ok, '- status', pm.response.code);",
+                  "if (!ok) { console.warn('Donaciones devolvió error (a veces pasa un 500 de Logística relayado bajo carga cuando se manda muchas donaciones seguidas del mismo producto), pero suele quedar igual persistida -- el item 23 confirma el conteo real.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonaciones}}/donaciones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorExitosasId}}\",\n  \"depositoID\": \"DEP-UTN-01\",\n  \"descripcion\": \"Donacion de prueba Postman #11\",\n  \"productoID\": \"prod-exi-{{runId}}\",\n  \"cantidad\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "No hacemos pm.test acá a propósito: bajo carga (20 donaciones seguidas del mismo producto), Donaciones a veces relaya un 500 de Logística aunque la donación quede creada igual. El conteo real se confirma en el item 23."
+        },
+        {
+          "id": "pm-00000049-0000-4000-8000-000000000000",
+          "name": "14 [Donaciones] POST /donaciones #12/20",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 14 [Donaciones] POST /donaciones #12/20 ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "console.log('Donacion creada?', ok, '- status', pm.response.code);",
+                  "if (!ok) { console.warn('Donaciones devolvió error (a veces pasa un 500 de Logística relayado bajo carga cuando se manda muchas donaciones seguidas del mismo producto), pero suele quedar igual persistida -- el item 23 confirma el conteo real.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonaciones}}/donaciones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorExitosasId}}\",\n  \"depositoID\": \"DEP-UTN-01\",\n  \"descripcion\": \"Donacion de prueba Postman #12\",\n  \"productoID\": \"prod-exi-{{runId}}\",\n  \"cantidad\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "No hacemos pm.test acá a propósito: bajo carga (20 donaciones seguidas del mismo producto), Donaciones a veces relaya un 500 de Logística aunque la donación quede creada igual. El conteo real se confirma en el item 23."
+        },
+        {
+          "id": "pm-0000004a-0000-4000-8000-000000000000",
+          "name": "15 [Donaciones] POST /donaciones #13/20",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 15 [Donaciones] POST /donaciones #13/20 ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "console.log('Donacion creada?', ok, '- status', pm.response.code);",
+                  "if (!ok) { console.warn('Donaciones devolvió error (a veces pasa un 500 de Logística relayado bajo carga cuando se manda muchas donaciones seguidas del mismo producto), pero suele quedar igual persistida -- el item 23 confirma el conteo real.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonaciones}}/donaciones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorExitosasId}}\",\n  \"depositoID\": \"DEP-UTN-01\",\n  \"descripcion\": \"Donacion de prueba Postman #13\",\n  \"productoID\": \"prod-exi-{{runId}}\",\n  \"cantidad\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "No hacemos pm.test acá a propósito: bajo carga (20 donaciones seguidas del mismo producto), Donaciones a veces relaya un 500 de Logística aunque la donación quede creada igual. El conteo real se confirma en el item 23."
+        },
+        {
+          "id": "pm-0000004b-0000-4000-8000-000000000000",
+          "name": "16 [Donaciones] POST /donaciones #14/20",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 16 [Donaciones] POST /donaciones #14/20 ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "console.log('Donacion creada?', ok, '- status', pm.response.code);",
+                  "if (!ok) { console.warn('Donaciones devolvió error (a veces pasa un 500 de Logística relayado bajo carga cuando se manda muchas donaciones seguidas del mismo producto), pero suele quedar igual persistida -- el item 23 confirma el conteo real.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonaciones}}/donaciones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorExitosasId}}\",\n  \"depositoID\": \"DEP-UTN-01\",\n  \"descripcion\": \"Donacion de prueba Postman #14\",\n  \"productoID\": \"prod-exi-{{runId}}\",\n  \"cantidad\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "No hacemos pm.test acá a propósito: bajo carga (20 donaciones seguidas del mismo producto), Donaciones a veces relaya un 500 de Logística aunque la donación quede creada igual. El conteo real se confirma en el item 23."
+        },
+        {
+          "id": "pm-0000004c-0000-4000-8000-000000000000",
+          "name": "17 [Donaciones] POST /donaciones #15/20",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 17 [Donaciones] POST /donaciones #15/20 ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "console.log('Donacion creada?', ok, '- status', pm.response.code);",
+                  "if (!ok) { console.warn('Donaciones devolvió error (a veces pasa un 500 de Logística relayado bajo carga cuando se manda muchas donaciones seguidas del mismo producto), pero suele quedar igual persistida -- el item 23 confirma el conteo real.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonaciones}}/donaciones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorExitosasId}}\",\n  \"depositoID\": \"DEP-UTN-01\",\n  \"descripcion\": \"Donacion de prueba Postman #15\",\n  \"productoID\": \"prod-exi-{{runId}}\",\n  \"cantidad\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "No hacemos pm.test acá a propósito: bajo carga (20 donaciones seguidas del mismo producto), Donaciones a veces relaya un 500 de Logística aunque la donación quede creada igual. El conteo real se confirma en el item 23."
+        },
+        {
+          "id": "pm-0000004d-0000-4000-8000-000000000000",
+          "name": "18 [Donaciones] POST /donaciones #16/20",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 18 [Donaciones] POST /donaciones #16/20 ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "console.log('Donacion creada?', ok, '- status', pm.response.code);",
+                  "if (!ok) { console.warn('Donaciones devolvió error (a veces pasa un 500 de Logística relayado bajo carga cuando se manda muchas donaciones seguidas del mismo producto), pero suele quedar igual persistida -- el item 23 confirma el conteo real.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonaciones}}/donaciones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorExitosasId}}\",\n  \"depositoID\": \"DEP-UTN-01\",\n  \"descripcion\": \"Donacion de prueba Postman #16\",\n  \"productoID\": \"prod-exi-{{runId}}\",\n  \"cantidad\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "No hacemos pm.test acá a propósito: bajo carga (20 donaciones seguidas del mismo producto), Donaciones a veces relaya un 500 de Logística aunque la donación quede creada igual. El conteo real se confirma en el item 23."
+        },
+        {
+          "id": "pm-0000004e-0000-4000-8000-000000000000",
+          "name": "19 [Donaciones] POST /donaciones #17/20",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 19 [Donaciones] POST /donaciones #17/20 ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "console.log('Donacion creada?', ok, '- status', pm.response.code);",
+                  "if (!ok) { console.warn('Donaciones devolvió error (a veces pasa un 500 de Logística relayado bajo carga cuando se manda muchas donaciones seguidas del mismo producto), pero suele quedar igual persistida -- el item 23 confirma el conteo real.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonaciones}}/donaciones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorExitosasId}}\",\n  \"depositoID\": \"DEP-UTN-01\",\n  \"descripcion\": \"Donacion de prueba Postman #17\",\n  \"productoID\": \"prod-exi-{{runId}}\",\n  \"cantidad\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "No hacemos pm.test acá a propósito: bajo carga (20 donaciones seguidas del mismo producto), Donaciones a veces relaya un 500 de Logística aunque la donación quede creada igual. El conteo real se confirma en el item 23."
+        },
+        {
+          "id": "pm-0000004f-0000-4000-8000-000000000000",
+          "name": "20 [Donaciones] POST /donaciones #18/20",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 20 [Donaciones] POST /donaciones #18/20 ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "console.log('Donacion creada?', ok, '- status', pm.response.code);",
+                  "if (!ok) { console.warn('Donaciones devolvió error (a veces pasa un 500 de Logística relayado bajo carga cuando se manda muchas donaciones seguidas del mismo producto), pero suele quedar igual persistida -- el item 23 confirma el conteo real.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonaciones}}/donaciones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorExitosasId}}\",\n  \"depositoID\": \"DEP-UTN-01\",\n  \"descripcion\": \"Donacion de prueba Postman #18\",\n  \"productoID\": \"prod-exi-{{runId}}\",\n  \"cantidad\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "No hacemos pm.test acá a propósito: bajo carga (20 donaciones seguidas del mismo producto), Donaciones a veces relaya un 500 de Logística aunque la donación quede creada igual. El conteo real se confirma en el item 23."
+        },
+        {
+          "id": "pm-00000050-0000-4000-8000-000000000000",
+          "name": "21 [Donaciones] POST /donaciones #19/20",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 21 [Donaciones] POST /donaciones #19/20 ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "console.log('Donacion creada?', ok, '- status', pm.response.code);",
+                  "if (!ok) { console.warn('Donaciones devolvió error (a veces pasa un 500 de Logística relayado bajo carga cuando se manda muchas donaciones seguidas del mismo producto), pero suele quedar igual persistida -- el item 23 confirma el conteo real.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonaciones}}/donaciones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorExitosasId}}\",\n  \"depositoID\": \"DEP-UTN-01\",\n  \"descripcion\": \"Donacion de prueba Postman #19\",\n  \"productoID\": \"prod-exi-{{runId}}\",\n  \"cantidad\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "No hacemos pm.test acá a propósito: bajo carga (20 donaciones seguidas del mismo producto), Donaciones a veces relaya un 500 de Logística aunque la donación quede creada igual. El conteo real se confirma en el item 23."
+        },
+        {
+          "id": "pm-00000051-0000-4000-8000-000000000000",
+          "name": "22 [Donaciones] POST /donaciones #20/20",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 22 [Donaciones] POST /donaciones #20/20 ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "console.log('Donacion creada?', ok, '- status', pm.response.code);",
+                  "if (!ok) { console.warn('Donaciones devolvió error (a veces pasa un 500 de Logística relayado bajo carga cuando se manda muchas donaciones seguidas del mismo producto), pero suele quedar igual persistida -- el item 23 confirma el conteo real.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonaciones}}/donaciones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorExitosasId}}\",\n  \"depositoID\": \"DEP-UTN-01\",\n  \"descripcion\": \"Donacion de prueba Postman #20\",\n  \"productoID\": \"prod-exi-{{runId}}\",\n  \"cantidad\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "No hacemos pm.test acá a propósito: bajo carga (20 donaciones seguidas del mismo producto), Donaciones a veces relaya un 500 de Logística aunque la donación quede creada igual. El conteo real se confirma en el item 23."
+        },
+        {
+          "id": "pm-00000052-0000-4000-8000-000000000000",
+          "name": "23 [Donaciones] GET /donaciones?donadorID={id} - contar estado actual",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 23 [Donaciones] GET /donaciones?donadorID={id} - contar estado actual ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));",
+                  "const propias = pm.response.json().filter(d => d.donadorID === pm.collectionVariables.get('donadorExitosasId'));",
+                  "const porEstado = propias.reduce((acc, d) => { acc[d.estado] = (acc[d.estado] || 0) + 1; return acc; }, {});",
+                  "console.log('Donaciones creadas:', propias.length, '- por estado:', JSON.stringify(porEstado));",
+                  "pm.test('Se crearon las 20 donaciones', () => pm.expect(propias.length).to.be.at.least(20));",
+                  "if ((porEstado.ACEPTADA || 0) < 20) { console.warn('Ninguna donación recién creada queda ACEPTADA sola (nacen INGRESADA) -- para que este escenario otorgue la insignia de verdad hace falta que pasen por el circuito completo de Logística (necesidad + matchmaking/cola + reportar entrega), que este folder NO automatiza. Los pasos 27-28 van a mostrar eso: /procesar corre sin error pero no otorga nada.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseDonaciones}}/donaciones?donadorID={{donadorExitosasId}}",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-00000053-0000-4000-8000-000000000000",
+          "name": "24 [Incentivos] POST /insignias - crear insignia de la misión",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 24 [Incentivos] POST /insignias - crear insignia de la misión ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseIncentivos}}/insignias",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{insigniaExitosasId}}\",\n  \"nombre\": \"Donador Confiable\",\n  \"descripcion\": \"Otorgada por 20 donaciones aceptadas\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-00000054-0000-4000-8000-000000000000",
+          "name": "25 [Incentivos] POST /misiones - crear mision DONACIONES_EXITOSAS",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 25 [Incentivos] POST /misiones - crear mision DONACIONES_EXITOSAS ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseIncentivos}}/misiones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{misionExitosasId}}\",\n  \"nombre\": \"Donaciones Exitosas\",\n  \"insigniaID\": \"{{insigniaExitosasId}}\",\n  \"categoriaInicio\": \"COLABORADOR\",\n  \"categoriaFin\": \"TRANSFORMADOR\",\n  \"tipo\": \"DONACIONES_EXITOSAS\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-00000055-0000-4000-8000-000000000000",
+          "name": "26 [Incentivos] POST /donadores/{id}/mision-actual - asignar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 26 [Incentivos] POST /donadores/{id}/mision-actual - asignar ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseIncentivos}}/donadores/{{donadorExitosasId}}/mision-actual",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{misionExitosasId}}\",\n  \"nombre\": \"Donaciones Exitosas\",\n  \"insigniaID\": \"{{insigniaExitosasId}}\",\n  \"categoriaInicio\": \"COLABORADOR\",\n  \"categoriaFin\": \"TRANSFORMADOR\",\n  \"tipo\": \"DONACIONES_EXITOSAS\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-00000056-0000-4000-8000-000000000000",
+          "name": "27 [Incentivos] POST /donadores/{id}/procesar - disparar evaluacion",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 27 [Incentivos] POST /donadores/{id}/procesar - disparar evaluacion ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseIncentivos}}/donadores/{{donadorExitosasId}}/procesar",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-00000057-0000-4000-8000-000000000000",
+          "name": "28 [Incentivos] GET /donadores/{id}/insignias - estado tras procesar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 28 [Incentivos] GET /donadores/{id}/insignias - estado tras procesar ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));",
+                  "const ids = pm.response.json().map(i => i.id);",
+                  "const otorgada = ids.includes(pm.collectionVariables.get('insigniaExitosasId'));",
+                  "console.log('Insignia otorgada?', otorgada);",
+                  "if (!otorgada) { console.warn('Esperado con este folder: las donaciones creadas arriba están en INGRESADA, no ACEPTADA, así que /procesar corta antes de evaluar la misión. Para ver esto otorgado de verdad hace falta el circuito completo de Logística (necesidad + matchmaking/cola + reportar entrega).'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseIncentivos}}/donadores/{{donadorExitosasId}}/insignias",
+            "header": []
+          },
+          "response": [],
+          "description": "No es un pm.test que deba pasar: con este folder (sin pasar las donaciones por Logística) lo esperable es que NO esté otorgada todavía. Ver el mensaje en consola."
+        },
+        {
+          "id": "pm-00000058-0000-4000-8000-000000000000",
+          "name": "29 [MANUAL / bloqueado] Requiere el circuito de Logística, no solo una queja",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 29 [MANUAL / bloqueado] Requiere el circuito de Logística, no solo una queja ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseDonaciones}}",
+            "header": []
+          },
+          "response": [],
+          "description": "Deshabilitado a propósito (no se corre en el Collection Runner). Este escenario tiene DOS dependencias externas que esta colección no puede resolver sola:\n\n1) Para que la insignia de DONACIONES_EXITOSAS se otorgue primero, las 20 donaciones de arriba tienen que pasar de INGRESADA a ACEPTADA, lo que -- según lo que vimos probando la API en vivo -- pasa a través del circuito de Logística (necesidad + matchmaking/cola + reportar entrega), no con un simple cambio de estado. Coordinen con Logística y Donadores y Entidades para armar ese circuito, o pregunten si existe algún endpoint de \"aceptar donación\" que no esté en el cliente HTTP de Incentivos.\n\n2) Ya con la insignia otorgada, para simular la PÉRDIDA de progreso hace falta bajar el conteo de ACEPTADA por debajo de 20 (vía una queja u otro mecanismo). FachadaDonaciones.registrarQuejaEnDonacion y cambiarEstadoDeDonacion están sin implementar en el cliente HTTP de Incentivos (tiran UnsupportedOperationException, ver FachadaDonacionesImpl.java líneas 54-58 y 85-88) -- Incentivos no tiene forma propia de simular esto.",
+          "disabled": true
+        },
+        {
+          "id": "pm-00000059-0000-4000-8000-000000000000",
+          "name": "30 [Incentivos] POST /donadores/{id}/procesar - reprocesar (correr DESPUES de resolver el paso 29 a mano)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 30 [Incentivos] POST /donadores/{id}/procesar - reprocesar (correr DESPUES de resolver el paso 29 a mano) ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseIncentivos}}/donadores/{{donadorExitosasId}}/procesar",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "pm-0000005a-0000-4000-8000-000000000000",
+          "name": "31 [Incentivos] GET /donadores/{id}/insignias - verificar perdida de progreso",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('--- 31 [Incentivos] GET /donadores/{id}/insignias - verificar perdida de progreso ---');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));",
+                  "const ids = pm.response.json().map(i => i.id);",
+                  "const tieneInsignia = ids.includes(pm.collectionVariables.get('insigniaExitosasId'));",
+                  "console.log('Todavia tiene la insignia?', tieneInsignia);",
+                  "console.warn('Este chequeo solo tiene sentido si ya resolviste a mano el paso 29 (donaciones ACEPTADA -> insignia otorgada -> queja que la baja de 20). Si no, este resultado no dice nada.');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseIncentivos}}/donadores/{{donadorExitosasId}}/insignias",
+            "header": []
+          },
+          "response": [],
+          "description": "Informativo, no falla la corrida: solo tiene sentido después de completar a mano las dos dependencias que describe el item 29."
+        }
+      ],
+      "description": "⚠ Escribe 21 registros en la base compartida de Donaciones y 1 en Donadores y Entidades. LÍMITE CONOCIDO (probado en vivo): las 20 donaciones nacen en INGRESADA, no ACEPTADA -- Donaciones ignora el \"estado\" que le mandes. Igual que el folder 05, este deja el setup completo probado (insignia, misión, asignación), pero el item 28 es informativo, no va a mostrar la insignia otorgada sin pasar antes por el circuito real de Logística. El item 29 (deshabilitado) documenta las dos dependencias externas que faltan para completar este escenario de punta a punta: llevar las donaciones a ACEPTADA, y después bajarlas de 20 con una queja (Incentivos no tiene cliente HTTP funcional para esto último)."
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (!pm.collectionVariables.get('runId')) {",
+          "  pm.collectionVariables.set('runId', Date.now().toString());",
+          "}",
+          "const runId = pm.collectionVariables.get('runId');",
+          "const ids = {",
+          "  insigniaCrudId: 'insignia-crud-' + runId,",
+          "  misionCrudId: 'mision-crud-' + runId,",
+          "  donadorCrudId: 'donador-crud-' + runId,",
+          "  insigniaNegocioId: 'insignia-neg-' + runId,",
+          "  misionNegocioId: 'mision-neg-' + runId,",
+          "  donadorCompletitudId: 'postman-comp-' + runId,",
+          "  misionCompletitudId: 'mision-comp-' + runId,",
+          "  insigniaCompletitudId: 'insignia-comp-' + runId,",
+          "  donadorExitosasId: 'postman-exi-' + runId,",
+          "  misionExitosasId: 'mision-exi-' + runId,",
+          "  insigniaExitosasId: 'insignia-exi-' + runId",
+          "};",
+          "Object.keys(ids).forEach((k) => { if (!pm.collectionVariables.get(k)) pm.collectionVariables.set(k, ids[k]); });"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseIncentivos",
+      "value": "https://incentivos-wtbd.onrender.com",
+      "type": "string"
+    },
+    {
+      "key": "baseDonaciones",
+      "value": "https://donatrack-donaciones.onrender.com",
+      "type": "string"
+    },
+    {
+      "key": "baseDonadoresYEntidades",
+      "value": "https://donadoresyentidadesv2.onrender.com",
+      "type": "string"
+    },
+    {
+      "key": "runId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "insigniaCrudId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "misionCrudId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "donadorCrudId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "insigniaNegocioId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "misionNegocioId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "donadorCompletitudId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "misionCompletitudId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "insigniaCompletitudId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "donadorExitosasId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "misionExitosasId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "insigniaExitosasId",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
