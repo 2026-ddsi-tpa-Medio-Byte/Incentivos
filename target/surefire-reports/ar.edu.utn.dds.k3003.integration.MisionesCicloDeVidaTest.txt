@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: ar.edu.utn.dds.k3003.integration.MisionesCicloDeVidaTest
 -------------------------------------------------------------------------------
-Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.600 s -- in ar.edu.utn.dds.k3003.integration.MisionesCicloDeVidaTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.494 s -- in ar.edu.utn.dds.k3003.integration.MisionesCicloDeVidaTest

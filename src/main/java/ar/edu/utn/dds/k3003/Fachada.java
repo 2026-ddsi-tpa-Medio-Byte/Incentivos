@@ -14,6 +14,7 @@ import ar.edu.utn.dds.k3003.model.Insignia;
 import ar.edu.utn.dds.k3003.model.Mision;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ar.edu.utn.dds.k3003.model.PerfilIncentivos;
 import ar.edu.utn.dds.k3003.repositories.PerfilIncentivosRepository;
 import ar.edu.utn.dds.k3003.repositories.InsigniaRepository;
@@ -306,7 +307,14 @@ public class Fachada implements FachadaIncentivos {
     repoPerfiles.asignarInsigniaADonador(donadorID, insigniaDTO.id());
   }
 
+  // @Transactional es necesario acá: sin él, revisarPerdidaDeProgreso funciona cuando lo llama un
+  // request HTTP (Spring mantiene la sesión de Hibernate abierta con open-in-view) pero tira
+  // LazyInitializationException al acceder a perfil.getInsignias() cuando lo dispara el Cron-Job
+  // desde su propio hilo en background, que no tiene esa sesión abierta. El @Scheduled atrapa esa
+  // excepción por donador y sigue, así que el batch entero reportaba "SUCCESS" sin haber procesado
+  // a nadie.
   @Override
+  @Transactional
   public void procesarDonador(String donadorID) throws NoSuchElementException {
     fachadaDonadoresYEntidades.buscarDonadorPorID(donadorID);
     revisarPerdidaDeProgreso(donadorID);

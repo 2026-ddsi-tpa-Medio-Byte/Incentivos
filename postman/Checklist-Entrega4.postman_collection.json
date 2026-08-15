@@ -1,0 +1,1934 @@
+{
+  "info": {
+    "_postman_id": "ck-00000033-0000-4000-8000-000000000000",
+    "name": "DonaTrack - Checklist Entrega 4 (los 4 módulos)",
+    "description": "Corre automáticamente todo lo que del checklist de la Entrega 4 se puede probar por HTTP, contra los 4 servicios reales desplegados en Render. Pensada para \"Run collection\" de punta a punta y después leer los console.log/console.warn de cada item (Postman Console) para saber qué pasó de verdad -- muchos items acá NO tienen un resultado \"correcto\" conocido de antemano (son justamente lo que hay que averiguar), así que están armados para observar y loguear, no para figurar como FAIL sin explicación.\n\nLo que este archivo NO puede probar (no son cosas que se testeen con HTTP requests):\n- Cola en acción / logs del worker -> hay que mirar el Live Tail de Render de Logística.\n- Segundo worker -> es una decisión de arquitectura/deploy, no un endpoint.\n- Bot de Telegram -> corre local en una compu, no es un servicio HTTP público.\n- Persistencia real tras reiniciar un servicio -> requeriría reiniciar el deploy, una acción real que no se dispara sola.\n- Métricas en Datadog -> viven en el dashboard de Datadog, no en la API de ningún módulo.\n- Todo el punto E (informe PDF) -> es documentación, no comportamiento en runtime.\n\nOrden: correr los folders de arriba hacia abajo (00 primero, siempre).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "id": "ck-00000002-0000-4000-8000-000000000000",
+      "name": "00 - Reset",
+      "item": [
+        {
+          "id": "ck-00000001-0000-4000-8000-000000000000",
+          "name": "POST /admin/clear (Incentivos)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('runId', Date.now().toString());",
+                  "const runId = pm.collectionVariables.get('runId');",
+                  "const ids = {",
+                  "  donadorEntregaId: 'ck-entrega-' + runId,",
+                  "  entidadId: 'ck-entidad-' + runId,",
+                  "  productoValidoId: 'ck-prod-valido-' + runId,",
+                  "  identificadorQRId: 'ck-qr-' + runId,",
+                  "  identificadorBarcodeId: 'ck-barcode-' + runId,",
+                  "  productoQRPar: 'ck-prodqr-' + runId,",
+                  "  productoQRImpar: 'ck-prodqrimpar-' + runId,",
+                  "  productoBarcodeOk: 'ck-prodbc-ok-' + runId,",
+                  "  productoBarcodeMal: 'ck-prodbc-mal-' + runId,",
+                  "  necesidadValidaId: 'ck-nec-valida-' + runId,",
+                  "  necesidadExtraId: 'ck-nec-extra-' + runId,",
+                  "  necesidadRecId: 'ck-nec-rec-' + runId,",
+                  "  depositoId: 'ck-dep-' + runId,",
+                  "  donadorBaneadoId: 'ck-baneado-' + runId,",
+                  "  donadorQuejasId: 'ck-quejas-' + runId,",
+                  "  donadorMatchAId: 'ck-matchA-' + runId,",
+                  "  donadorMatchBId: 'ck-matchB-' + runId,",
+                  "  productoMatchId: 'ck-prodmatch-' + runId",
+                  "};",
+                  "Object.keys(ids).forEach((k) => pm.collectionVariables.set(k, ids[k]));",
+                  "console.log('Nueva corrida del checklist, runId =', runId);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== POST /admin/clear (Incentivos) ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseIncentivos}}/admin/clear"
+          },
+          "response": [],
+          "description": "Corre primero siempre: limpia solo la base de Incentivos y genera IDs frescos para toda la corrida."
+        }
+      ],
+      "description": "Deja Incentivos limpio y arranca una corrida con IDs nuevos."
+    },
+    {
+      "id": "ck-00000034-0000-4000-8000-000000000000",
+      "name": "A1 - Donación end-to-end",
+      "item": [
+        {
+          "id": "ck-00000003-0000-4000-8000-000000000000",
+          "name": "A1.1 [Donadores y Entidades] POST /donadores - donador para la donación",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== A1.1 [Donadores y Entidades] POST /donadores - donador para la donación ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status en [200,201]', () => pm.expect([200,201], pm.response.text()).to.include(pm.response.code));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonadoresYEntidades}}/donadores",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{donadorEntregaId}}\",\n  \"nombre\": \"Checklist\",\n  \"apellido\": \"A1\",\n  \"edad\": 30,\n  \"email\": \"a1-{{runId}}@test.com\",\n  \"nroDocumento\": \"{{runId}}\",\n  \"domicilio\": \"Test 1\",\n  \"estado\": \"VERIFICADO\",\n  \"categoria\": \"OCASIONAL\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "ck-00000004-0000-4000-8000-000000000000",
+          "name": "A1.2 [Donaciones] POST /donaciones - registrar la donación",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== A1.2 [Donaciones] POST /donaciones - registrar la donación ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "pm.test('Se registró (2xx)', () => pm.expect(ok, pm.response.text()).to.eql(true));",
+                  "if (ok) { pm.collectionVariables.set('a1DonacionId', pm.response.json().id); console.log('Donacion creada con id', pm.response.json().id, 'estado', pm.response.json().estado); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonaciones}}/donaciones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorEntregaId}}\",\n  \"depositoID\": \"DEP-UTN-01\",\n  \"descripcion\": \"Checklist A1 end-to-end\",\n  \"productoID\": \"prod-a1-{{runId}}\",\n  \"cantidad\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "Confirma el primer salto de la cadena (Donaciones acepta el alta). No podemos observar desde acá si Donaciones notifica internamente a Logística/Donadores -- eso solo se ve en los logs de esos servicios."
+        },
+        {
+          "id": "ck-00000005-0000-4000-8000-000000000000",
+          "name": "A1.3 [Donaciones] GET /donaciones/{id} - confirmar que quedó guardada",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== A1.3 [Donaciones] GET /donaciones/{id} - confirmar que quedó guardada ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));",
+                  "console.log(\"Estado inicial de la donación:\", pm.response.json().estado);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseDonaciones}}/donaciones/{{a1DonacionId}}",
+            "header": []
+          },
+          "response": [],
+          "description": "A1 completo = este GET responde 200. Lo que la donación dispara en Donadores/Logística por dentro (si corresponde) no es observable vía HTTP y hay que verlo en los logs de Render de esos dos servicios."
+        }
+      ],
+      "description": ""
+    },
+    {
+      "id": "ck-00000035-0000-4000-8000-000000000000",
+      "name": "A2 A3 - Necesidad con producto valido/inexistente",
+      "item": [
+        {
+          "id": "ck-00000006-0000-4000-8000-000000000000",
+          "name": "A2.0 [Donaciones] POST /identificadores - requerido para poder crear el producto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== A2.0 [Donaciones] POST /identificadores - requerido para poder crear el producto ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status en [200,201]', () => pm.expect([200,201], pm.response.text()).to.include(pm.response.code));",
+                  "pm.collectionVariables.set('identificadorValidoId', pm.response.json().id);",
+                  "console.log('Identificador real asignado por el servidor:', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonaciones}}/identificadores",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"CODIGODEBARRAS\",\n  \"descripcion\": \"Identificador para producto válido del checklist\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "Donaciones asigna el id del identificador (ignora el que le mandes), por eso lo leemos de la respuesta en vez de asumir el nuestro."
+        },
+        {
+          "id": "ck-00000007-0000-4000-8000-000000000000",
+          "name": "A2.1 [Donaciones] POST /productos - crear producto válido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== A2.1 [Donaciones] POST /productos - crear producto válido ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status en [200,201]', () => pm.expect([200,201], pm.response.text()).to.include(pm.response.code));",
+                  "if (pm.response.code < 300) { pm.collectionVariables.set('productoValidoId', pm.response.json().id); console.log('Producto real:', pm.response.json().id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonaciones}}/productos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{productoValidoId}}\",\n  \"nombre\": \"Producto Checklist\",\n  \"descripcion\": \"Para probar necesidad válida\",\n  \"categoriaID\": \"cat-1\",\n  \"identificadorID\": \"{{identificadorValidoId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "También puede que el id del producto lo asigne el servidor igual que con donaciones/identificadores -- por eso releemos productoValidoId de la respuesta."
+        },
+        {
+          "id": "ck-00000008-0000-4000-8000-000000000000",
+          "name": "A2.2 [Donadores y Entidades] POST /entidades - crear entidad",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== A2.2 [Donadores y Entidades] POST /entidades - crear entidad ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status en [200,201]', () => pm.expect([200,201], pm.response.text()).to.include(pm.response.code));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonadoresYEntidades}}/entidades",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{entidadId}}\",\n  \"nombre\": \"Entidad Checklist\",\n  \"domicilio\": \"Test 1\",\n  \"descripcion\": \"Entidad de prueba del checklist\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "El shape exacto de EntidadBeneficaDTO no está 100% confirmado desde el código de Incentivos (no lo usamos nunca); si da 400, puede ser un campo faltante -- ver el body de respuesta."
+        },
+        {
+          "id": "ck-00000009-0000-4000-8000-000000000000",
+          "name": "A2.3 [Donadores y Entidades] POST /necesidades - producto VÁLIDO -> esperado 2xx",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== A2.3 [Donadores y Entidades] POST /necesidades - producto VÁLIDO -> esperado 2xx ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "pm.test('Producto válido -> 2xx', () => pm.expect(ok, pm.response.text()).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonadoresYEntidades}}/necesidades",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"entidadID\": \"{{entidadId}}\",\n  \"nivelDeUrgencia\": 3,\n  \"descripcion\": \"Necesidad checklist A2\",\n  \"cantidadObjetivo\": 10,\n  \"productoSolicitadoID\": \"{{productoValidoId}}\",\n  \"tipo\": \"EXTRAORDINARIA\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "ck-0000000a-0000-4000-8000-000000000000",
+          "name": "A3.1 [Donadores y Entidades] POST /necesidades - producto INEXISTENTE -> esperado 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== A3.1 [Donadores y Entidades] POST /necesidades - producto INEXISTENTE -> esperado 400 ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 400', () => pm.expect(pm.response.code, pm.response.text()).to.eql(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonadoresYEntidades}}/necesidades",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"entidadID\": \"{{entidadId}}\",\n  \"nivelDeUrgencia\": 3,\n  \"descripcion\": \"Necesidad checklist A3\",\n  \"cantidadObjetivo\": 10,\n  \"productoSolicitadoID\": \"producto-no-existe-{{runId}}\",\n  \"tipo\": \"EXTRAORDINARIA\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "Funcionalidad nueva de Entrega 4: Donadores y Entidades tiene que corroborar el producto contra Donaciones antes de crear la necesidad."
+        }
+      ],
+      "description": ""
+    },
+    {
+      "id": "ck-00000036-0000-4000-8000-000000000000",
+      "name": "A9 - Cron-Job y perdida de progreso (referencia)",
+      "item": [
+        {
+          "id": "ck-0000000b-0000-4000-8000-000000000000",
+          "name": "A9.1 [Incentivos] GET /admin/perfiles - snapshot actual",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== A9.1 [Incentivos] GET /admin/perfiles - snapshot actual ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));",
+                  "console.log(\"Perfiles con misión asignada ahora:\", pm.response.json().filter(p => p.misionActualID).length);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseIncentivos}}/admin/perfiles",
+            "header": []
+          },
+          "response": [],
+          "description": "Este folder NO repite el escenario completo de pérdida de progreso con datos frescos (necesitaría 20 donaciones ACEPTADA, lo cual depende del circuito de Logística -- ver A4/B6). Ya se validó manualmente en esta sesión con el donador real \"1\": insignia otorgada -> queja vía POST /donaciones/{id}/quejas -> reprocesar -> insignia retirada + categoría revertida. Ese resultado queda documentado aparte, no repetido acá para no seguir mutando datos compartidos del equipo."
+        },
+        {
+          "id": "ck-0000000c-0000-4000-8000-000000000000",
+          "name": "A9.2 [Incentivos] POST /admin/procesar-pendientes - el cron funciona on-demand",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== A9.2 [Incentivos] POST /admin/procesar-pendientes - el cron funciona on-demand ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseIncentivos}}/admin/procesar-pendientes",
+            "header": []
+          },
+          "response": [],
+          "description": "Confirma que la lógica que dispara el Cron-Job cada 60s funciona. Que el temporizador de Spring tickee solo, sin que nadie llame nada, no es algo que una corrida de Newman de un solo tiro pueda demostrar (necesita ver logs de Render a lo largo del tiempo)."
+        }
+      ],
+      "description": ""
+    },
+    {
+      "id": "ck-00000037-0000-4000-8000-000000000000",
+      "name": "B1 - Donador BANEADO no puede donar",
+      "item": [
+        {
+          "id": "ck-0000000d-0000-4000-8000-000000000000",
+          "name": "B1.1 [Donadores y Entidades] POST /donadores - donador para banear",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== B1.1 [Donadores y Entidades] POST /donadores - donador para banear ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status en [200,201]', () => pm.expect([200,201], pm.response.text()).to.include(pm.response.code));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonadoresYEntidades}}/donadores",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{donadorBaneadoId}}\",\n  \"nombre\": \"Checklist\",\n  \"apellido\": \"Baneado\",\n  \"edad\": 40,\n  \"email\": \"baneado-{{runId}}@test.com\",\n  \"nroDocumento\": \"{{runId}}b\",\n  \"domicilio\": \"Test 2\",\n  \"estado\": \"VERIFICADO\",\n  \"categoria\": \"OCASIONAL\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "ck-0000000e-0000-4000-8000-000000000000",
+          "name": "B1.2 [Donadores y Entidades] PATCH /donadores/{id}/estado -> BANEADO",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== B1.2 [Donadores y Entidades] PATCH /donadores/{id}/estado -> BANEADO ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status en [200,201,204]', () => pm.expect([200,201,204], pm.response.text()).to.include(pm.response.code));",
+                  "console.log(\"Estado tras el PATCH:\", pm.response.text());"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonadoresYEntidades}}/donadores/{{donadorBaneadoId}}/estado",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"BANEADO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "ck-0000000f-0000-4000-8000-000000000000",
+          "name": "B1.3 [Donadores y Entidades] GET /donadores/{id}/puede-donar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== B1.3 [Donadores y Entidades] GET /donadores/{id}/puede-donar ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "console.log('Status:', pm.response.code, 'Body:', pm.response.text());",
+                  "pm.test('puede-donar responde 2xx', () => pm.expect(pm.response.code, pm.response.text()).to.be.within(200, 299));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseDonadoresYEntidades}}/donadores/{{donadorBaneadoId}}/puede-donar",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "ck-00000010-0000-4000-8000-000000000000",
+          "name": "B1.4 [Donaciones] POST /donaciones - intentar donar estando BANEADO -> esperado 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== B1.4 [Donaciones] POST /donaciones - intentar donar estando BANEADO -> esperado 400 ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "console.log('Status:', pm.response.code, 'Body:', pm.response.text());",
+                  "if (pm.response.code === 400) { pm.test('Rechazada con 400 por estar BANEADO', () => true); } else { console.warn('Esperábamos 400 (\"No puede donar\") y llegó ' + pm.response.code + ' -- o Donaciones no valida el estado del donador contra Donadores y Entidades antes de aceptar, o lo valida en otro punto del flujo.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonaciones}}/donaciones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorBaneadoId}}\",\n  \"depositoID\": \"DEP-UTN-01\",\n  \"descripcion\": \"Intento de donar baneado\",\n  \"productoID\": \"prod-baneado-{{runId}}\",\n  \"cantidad\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "No hacemos un pm.test que rompa la corrida: esto es justamente lo que queremos observar (si Donaciones consulta el estado del donador antes de aceptar la donación)."
+        }
+      ],
+      "description": ""
+    },
+    {
+      "id": "ck-00000038-0000-4000-8000-000000000000",
+      "name": "B2 - 5 quejas SOSPECHOSO / 10 quejas BANEADO",
+      "item": [
+        {
+          "id": "ck-00000011-0000-4000-8000-000000000000",
+          "name": "B2.1 [Donadores y Entidades] POST /donadores - donador para acumular quejas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== B2.1 [Donadores y Entidades] POST /donadores - donador para acumular quejas ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status en [200,201]', () => pm.expect([200,201], pm.response.text()).to.include(pm.response.code));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonadoresYEntidades}}/donadores",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{donadorQuejasId}}\",\n  \"nombre\": \"Checklist\",\n  \"apellido\": \"Quejas\",\n  \"edad\": 35,\n  \"email\": \"quejas-{{runId}}@test.com\",\n  \"nroDocumento\": \"{{runId}}q\",\n  \"domicilio\": \"Test 3\",\n  \"estado\": \"VERIFICADO\",\n  \"categoria\": \"OCASIONAL\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "ck-00000012-0000-4000-8000-000000000000",
+          "name": "B2.2 [Donadores y Entidades] POST /donadores/{id}/quejas - queja #1/10",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== B2.2 [Donadores y Entidades] POST /donadores/{id}/quejas - queja #1/10 ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "console.log('Status:', pm.response.code, 'Body:', pm.response.text());",
+                  "if (pm.response.code < 200 || pm.response.code >= 300) { console.warn('La queja #1 no se registró (2xx esperado). Puede que agregarQueja valide que exista una donación real con ese donacionID.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonadoresYEntidades}}/donadores/{{donadorQuejasId}}/quejas",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorQuejasId}}\",\n  \"donacionID\": \"ck-donacion-inexistente-1\",\n  \"fecha\": \"2026-08-14\",\n  \"descripcion\": \"Queja checklist #1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "ck-00000013-0000-4000-8000-000000000000",
+          "name": "B2.3 [Donadores y Entidades] POST /donadores/{id}/quejas - queja #2/10",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== B2.3 [Donadores y Entidades] POST /donadores/{id}/quejas - queja #2/10 ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "console.log('Status:', pm.response.code, 'Body:', pm.response.text());",
+                  "if (pm.response.code < 200 || pm.response.code >= 300) { console.warn('La queja #2 no se registró (2xx esperado). Puede que agregarQueja valide que exista una donación real con ese donacionID.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonadoresYEntidades}}/donadores/{{donadorQuejasId}}/quejas",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorQuejasId}}\",\n  \"donacionID\": \"ck-donacion-inexistente-2\",\n  \"fecha\": \"2026-08-14\",\n  \"descripcion\": \"Queja checklist #2\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "ck-00000014-0000-4000-8000-000000000000",
+          "name": "B2.4 [Donadores y Entidades] POST /donadores/{id}/quejas - queja #3/10",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== B2.4 [Donadores y Entidades] POST /donadores/{id}/quejas - queja #3/10 ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "console.log('Status:', pm.response.code, 'Body:', pm.response.text());",
+                  "if (pm.response.code < 200 || pm.response.code >= 300) { console.warn('La queja #3 no se registró (2xx esperado). Puede que agregarQueja valide que exista una donación real con ese donacionID.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonadoresYEntidades}}/donadores/{{donadorQuejasId}}/quejas",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorQuejasId}}\",\n  \"donacionID\": \"ck-donacion-inexistente-3\",\n  \"fecha\": \"2026-08-14\",\n  \"descripcion\": \"Queja checklist #3\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "ck-00000015-0000-4000-8000-000000000000",
+          "name": "B2.5 [Donadores y Entidades] POST /donadores/{id}/quejas - queja #4/10",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== B2.5 [Donadores y Entidades] POST /donadores/{id}/quejas - queja #4/10 ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "console.log('Status:', pm.response.code, 'Body:', pm.response.text());",
+                  "if (pm.response.code < 200 || pm.response.code >= 300) { console.warn('La queja #4 no se registró (2xx esperado). Puede que agregarQueja valide que exista una donación real con ese donacionID.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonadoresYEntidades}}/donadores/{{donadorQuejasId}}/quejas",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorQuejasId}}\",\n  \"donacionID\": \"ck-donacion-inexistente-4\",\n  \"fecha\": \"2026-08-14\",\n  \"descripcion\": \"Queja checklist #4\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "ck-00000016-0000-4000-8000-000000000000",
+          "name": "B2.6 [Donadores y Entidades] POST /donadores/{id}/quejas - queja #5/10",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== B2.6 [Donadores y Entidades] POST /donadores/{id}/quejas - queja #5/10 ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "console.log('Status:', pm.response.code, 'Body:', pm.response.text());",
+                  "if (pm.response.code < 200 || pm.response.code >= 300) { console.warn('La queja #5 no se registró (2xx esperado). Puede que agregarQueja valide que exista una donación real con ese donacionID.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonadoresYEntidades}}/donadores/{{donadorQuejasId}}/quejas",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorQuejasId}}\",\n  \"donacionID\": \"ck-donacion-inexistente-5\",\n  \"fecha\": \"2026-08-14\",\n  \"descripcion\": \"Queja checklist #5\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "ck-00000017-0000-4000-8000-000000000000",
+          "name": "B2.7 [Donadores y Entidades] GET /donadores/{id} - estado tras 5 quejas (esperado SOSPECHOSO)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== B2.7 [Donadores y Entidades] GET /donadores/{id} - estado tras 5 quejas (esperado SOSPECHOSO) ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));",
+                  "const estado = pm.response.json().estado;",
+                  "console.log('Estado tras 5 quejas:', estado);",
+                  "if (estado !== 'SOSPECHOSO') { console.warn('Esperábamos SOSPECHOSO tras 5 quejas y el estado es ' + estado + '.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseDonadoresYEntidades}}/donadores/{{donadorQuejasId}}",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "ck-00000018-0000-4000-8000-000000000000",
+          "name": "B2.7 [Donadores y Entidades] POST /donadores/{id}/quejas - queja #6/10",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== B2.7 [Donadores y Entidades] POST /donadores/{id}/quejas - queja #6/10 ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "console.log('Status:', pm.response.code, 'Body:', pm.response.text());",
+                  "if (pm.response.code < 200 || pm.response.code >= 300) { console.warn('La queja #6 no se registró (2xx esperado). Puede que agregarQueja valide que exista una donación real con ese donacionID.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonadoresYEntidades}}/donadores/{{donadorQuejasId}}/quejas",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorQuejasId}}\",\n  \"donacionID\": \"ck-donacion-inexistente-6\",\n  \"fecha\": \"2026-08-14\",\n  \"descripcion\": \"Queja checklist #6\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "ck-00000019-0000-4000-8000-000000000000",
+          "name": "B2.8 [Donadores y Entidades] POST /donadores/{id}/quejas - queja #7/10",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== B2.8 [Donadores y Entidades] POST /donadores/{id}/quejas - queja #7/10 ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "console.log('Status:', pm.response.code, 'Body:', pm.response.text());",
+                  "if (pm.response.code < 200 || pm.response.code >= 300) { console.warn('La queja #7 no se registró (2xx esperado). Puede que agregarQueja valide que exista una donación real con ese donacionID.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonadoresYEntidades}}/donadores/{{donadorQuejasId}}/quejas",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorQuejasId}}\",\n  \"donacionID\": \"ck-donacion-inexistente-7\",\n  \"fecha\": \"2026-08-14\",\n  \"descripcion\": \"Queja checklist #7\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "ck-0000001a-0000-4000-8000-000000000000",
+          "name": "B2.9 [Donadores y Entidades] POST /donadores/{id}/quejas - queja #8/10",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== B2.9 [Donadores y Entidades] POST /donadores/{id}/quejas - queja #8/10 ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "console.log('Status:', pm.response.code, 'Body:', pm.response.text());",
+                  "if (pm.response.code < 200 || pm.response.code >= 300) { console.warn('La queja #8 no se registró (2xx esperado). Puede que agregarQueja valide que exista una donación real con ese donacionID.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonadoresYEntidades}}/donadores/{{donadorQuejasId}}/quejas",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorQuejasId}}\",\n  \"donacionID\": \"ck-donacion-inexistente-8\",\n  \"fecha\": \"2026-08-14\",\n  \"descripcion\": \"Queja checklist #8\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "ck-0000001b-0000-4000-8000-000000000000",
+          "name": "B2.10 [Donadores y Entidades] POST /donadores/{id}/quejas - queja #9/10",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== B2.10 [Donadores y Entidades] POST /donadores/{id}/quejas - queja #9/10 ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "console.log('Status:', pm.response.code, 'Body:', pm.response.text());",
+                  "if (pm.response.code < 200 || pm.response.code >= 300) { console.warn('La queja #9 no se registró (2xx esperado). Puede que agregarQueja valide que exista una donación real con ese donacionID.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonadoresYEntidades}}/donadores/{{donadorQuejasId}}/quejas",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorQuejasId}}\",\n  \"donacionID\": \"ck-donacion-inexistente-9\",\n  \"fecha\": \"2026-08-14\",\n  \"descripcion\": \"Queja checklist #9\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "ck-0000001c-0000-4000-8000-000000000000",
+          "name": "B2.11 [Donadores y Entidades] POST /donadores/{id}/quejas - queja #10/10",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== B2.11 [Donadores y Entidades] POST /donadores/{id}/quejas - queja #10/10 ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "console.log('Status:', pm.response.code, 'Body:', pm.response.text());",
+                  "if (pm.response.code < 200 || pm.response.code >= 300) { console.warn('La queja #10 no se registró (2xx esperado). Puede que agregarQueja valide que exista una donación real con ese donacionID.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonadoresYEntidades}}/donadores/{{donadorQuejasId}}/quejas",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donadorQuejasId}}\",\n  \"donacionID\": \"ck-donacion-inexistente-10\",\n  \"fecha\": \"2026-08-14\",\n  \"descripcion\": \"Queja checklist #10\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "ck-0000001d-0000-4000-8000-000000000000",
+          "name": "B2.12 [Donadores y Entidades] GET /donadores/{id} - estado tras 10 quejas (esperado BANEADO)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== B2.12 [Donadores y Entidades] GET /donadores/{id} - estado tras 10 quejas (esperado BANEADO) ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));",
+                  "const estado = pm.response.json().estado;",
+                  "console.log('Estado tras 10 quejas:', estado);",
+                  "if (estado !== 'BANEADO') { console.warn('Esperábamos BANEADO tras 10 quejas y el estado es ' + estado + '.'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseDonadoresYEntidades}}/donadores/{{donadorQuejasId}}",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        }
+      ],
+      "description": ""
+    },
+    {
+      "id": "ck-00000039-0000-4000-8000-000000000000",
+      "name": "B3 - Necesidad EXTRAORDINARIA vs RECURRENTE (parciales)",
+      "item": [
+        {
+          "id": "ck-0000001e-0000-4000-8000-000000000000",
+          "name": "B3.1 [Donadores y Entidades] POST /necesidades - tipo EXTRAORDINARIA",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== B3.1 [Donadores y Entidades] POST /necesidades - tipo EXTRAORDINARIA ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "pm.test('Necesidad EXTRAORDINARIA creada (2xx)', () => pm.expect(ok, pm.response.text()).to.eql(true));",
+                  "if (ok) { pm.collectionVariables.set('necesidadExtraId', pm.response.json().id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonadoresYEntidades}}/necesidades",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"entidadID\": \"{{entidadId}}\",\n  \"nivelDeUrgencia\": 2,\n  \"descripcion\": \"Necesidad EXTRAORDINARIA checklist\",\n  \"cantidadObjetivo\": 20,\n  \"productoSolicitadoID\": \"{{productoValidoId}}\",\n  \"tipo\": \"EXTRAORDINARIA\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "ck-0000001f-0000-4000-8000-000000000000",
+          "name": "B3.2 [Donadores y Entidades] POST /necesidades/{id}/satisfaccion - parcial (10 de 20) en EXTRAORDINARIA",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== B3.2 [Donadores y Entidades] POST /necesidades/{id}/satisfaccion - parcial (10 de 20) en EXTRAORDINARIA ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "console.log('Status:', pm.response.code, 'Body:', pm.response.text());",
+                  "console.log('EXTRAORDINARIA: satisfacción parcial ' + (pm.response.code >= 200 && pm.response.code < 300 ? 'ACEPTADA' : 'RECHAZADA') + ' (status ' + pm.response.code + ')');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonadoresYEntidades}}/necesidades/{{necesidadExtraId}}/satisfaccion",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cantidad\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "Esperado por la regla de negocio: EXTRAORDINARIA debería aceptar parciales, RECURRENTE no. No hacemos un pm.test fijo porque justamente estamos confirmando cuál es el comportamiento real."
+        },
+        {
+          "id": "ck-00000020-0000-4000-8000-000000000000",
+          "name": "B3.3 [Donadores y Entidades] POST /necesidades - tipo RECURRENTE",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== B3.3 [Donadores y Entidades] POST /necesidades - tipo RECURRENTE ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "pm.test('Necesidad RECURRENTE creada (2xx)', () => pm.expect(ok, pm.response.text()).to.eql(true));",
+                  "if (ok) { pm.collectionVariables.set('necesidadRecId', pm.response.json().id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonadoresYEntidades}}/necesidades",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"entidadID\": \"{{entidadId}}\",\n  \"nivelDeUrgencia\": 2,\n  \"descripcion\": \"Necesidad RECURRENTE checklist\",\n  \"cantidadObjetivo\": 20,\n  \"productoSolicitadoID\": \"{{productoValidoId}}\",\n  \"tipo\": \"RECURRENTE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "ck-00000021-0000-4000-8000-000000000000",
+          "name": "B3.4 [Donadores y Entidades] POST /necesidades/{id}/satisfaccion - parcial (10 de 20) en RECURRENTE",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== B3.4 [Donadores y Entidades] POST /necesidades/{id}/satisfaccion - parcial (10 de 20) en RECURRENTE ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "console.log('Status:', pm.response.code, 'Body:', pm.response.text());",
+                  "console.log('RECURRENTE: satisfacción parcial ' + (pm.response.code >= 200 && pm.response.code < 300 ? 'ACEPTADA' : 'RECHAZADA') + ' (status ' + pm.response.code + ')');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonadoresYEntidades}}/necesidades/{{necesidadRecId}}/satisfaccion",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cantidad\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "Esperado por la regla de negocio: EXTRAORDINARIA debería aceptar parciales, RECURRENTE no. No hacemos un pm.test fijo porque justamente estamos confirmando cuál es el comportamiento real."
+        }
+      ],
+      "description": ""
+    },
+    {
+      "id": "ck-0000003a-0000-4000-8000-000000000000",
+      "name": "B4 B5 - Validacion de productos por QR / codigo de barras",
+      "item": [
+        {
+          "id": "ck-00000022-0000-4000-8000-000000000000",
+          "name": "B4.1 [Donaciones] POST /identificadores - tipo QR",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== B4.1 [Donaciones] POST /identificadores - tipo QR ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status en [200,201]', () => pm.expect([200,201], pm.response.text()).to.include(pm.response.code));",
+                  "pm.collectionVariables.set('identificadorQRId', pm.response.json().id);",
+                  "console.log('Identificador QR real:', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonaciones}}/identificadores",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{identificadorQRId}}\",\n  \"tipo\": \"QR\",\n  \"descripcion\": \"Identificador QR checklist\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "Donaciones asigna su propio id (ignora el que mandemos), por eso lo releemos de la respuesta antes de usarlo en los productos de abajo."
+        },
+        {
+          "id": "ck-00000023-0000-4000-8000-000000000000",
+          "name": "B4.2 [Donaciones] POST /productos - nombre con cantidad PAR de letras + QR -> esperado OK",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== B4.2 [Donaciones] POST /productos - nombre con cantidad PAR de letras + QR -> esperado OK ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "console.log('Status:', pm.response.code, 'Body:', pm.response.text());",
+                  "console.log('Nota: \"Arroz\" tiene 5 letras (impar) a propósito, para ver si la validación de paridad realmente se aplica.');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonaciones}}/productos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{productoQRPar}}\",\n  \"nombre\": \"Arroz\",\n  \"descripcion\": \"Producto con QR, \\\"Arroz\\\" tiene 5 letras (impar) -- ver nota\",\n  \"categoriaID\": \"cat-1\",\n  \"identificadorID\": \"{{identificadorQRId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "OJO: mandamos \"Arroz\" (5 letras, impar) a propósito -- si la regla \"nombre con cantidad par de letras\" está implementada, esto debería rechazarse. Revisar el status real."
+        },
+        {
+          "id": "ck-00000024-0000-4000-8000-000000000000",
+          "name": "B4.3 [Donaciones] POST /productos - nombre con cantidad PAR de letras (control positivo)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== B4.3 [Donaciones] POST /productos - nombre con cantidad PAR de letras (control positivo) ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "console.log('Status:', pm.response.code, 'Body:', pm.response.text());"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonaciones}}/productos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{productoQRImpar}}\",\n  \"nombre\": \"Fideos\",\n  \"descripcion\": \"Producto con QR, \\\"Fideos\\\" tiene 6 letras (par)\",\n  \"categoriaID\": \"cat-1\",\n  \"identificadorID\": \"{{identificadorQRId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "\"Fideos\" tiene 6 letras (par) -- control positivo para contrastar con el item anterior."
+        },
+        {
+          "id": "ck-00000025-0000-4000-8000-000000000000",
+          "name": "B5.1 [Donaciones] POST /identificadores - tipo CODIGODEBARRAS",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== B5.1 [Donaciones] POST /identificadores - tipo CODIGODEBARRAS ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status en [200,201]', () => pm.expect([200,201], pm.response.text()).to.include(pm.response.code));",
+                  "pm.collectionVariables.set('identificadorBarcodeId', pm.response.json().id);",
+                  "console.log('Identificador de barras real:', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonaciones}}/identificadores",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{identificadorBarcodeId}}\",\n  \"tipo\": \"CODIGODEBARRAS\",\n  \"descripcion\": \"Identificador de barras checklist\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "ck-00000026-0000-4000-8000-000000000000",
+          "name": "B5.2 [Donaciones] POST /productos - descripción de 3+ palabras + codigo de barras -> esperado OK",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== B5.2 [Donaciones] POST /productos - descripción de 3+ palabras + codigo de barras -> esperado OK ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "console.log('Status:', pm.response.code, 'Body:', pm.response.text());"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonaciones}}/productos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{productoBarcodeOk}}\",\n  \"nombre\": \"Leche\",\n  \"descripcion\": \"Leche entera larga vida\",\n  \"categoriaID\": \"cat-1\",\n  \"identificadorID\": \"{{identificadorBarcodeId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "Descripción con 4 palabras -- control positivo."
+        },
+        {
+          "id": "ck-00000027-0000-4000-8000-000000000000",
+          "name": "B5.3 [Donaciones] POST /productos - descripción de MENOS de 3 palabras + codigo de barras -> esperado 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== B5.3 [Donaciones] POST /productos - descripción de MENOS de 3 palabras + codigo de barras -> esperado 400 ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "console.log('Status:', pm.response.code, 'Body:', pm.response.text());",
+                  "if (pm.response.code === 400) { pm.test('Rechazado por descripción corta', () => true); } else { console.warn('Esperábamos 400 (descripción de menos de 3 palabras con código de barras) y llegó ' + pm.response.code); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseDonaciones}}/productos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{productoBarcodeMal}}\",\n  \"nombre\": \"Leche\",\n  \"descripcion\": \"Leche\",\n  \"categoriaID\": \"cat-1\",\n  \"identificadorID\": \"{{identificadorBarcodeId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "Descripción de 1 sola palabra a propósito, para ver si la validación de \"3+ palabras\" está implementada."
+        }
+      ],
+      "description": ""
+    },
+    {
+      "id": "ck-0000003b-0000-4000-8000-000000000000",
+      "name": "B6 - Sobrante de una donacion al stock",
+      "item": [
+        {
+          "id": "ck-00000028-0000-4000-8000-000000000000",
+          "name": "B6.1 [Logística] POST /api/depositos - depósito de prueba",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== B6.1 [Logística] POST /api/depositos - depósito de prueba ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "console.log('Status:', pm.response.code, 'Body:', pm.response.text());",
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "if (ok) { const realId = pm.response.json().depositoid || pm.response.json().id; pm.collectionVariables.set('depositoId', realId); console.log('Deposito creado:', realId); } else { console.warn('No se pudo crear un depósito de prueba propio -- B6 va a reusar DEP-UTN-01.'); pm.collectionVariables.set('depositoId', 'DEP-UTN-01'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseLogistica}}/api/depositos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Deposito Checklist\",\n  \"direccion\": \"Test\",\n  \"capacidadMaxima\": 100,\n  \"algoritmo\": \"SUBATENDIDOS\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "ck-00000029-0000-4000-8000-000000000000",
+          "name": "B6.2 [Logística] GET /api/depositos/{id} - stock ANTES",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== B6.2 [Logística] GET /api/depositos/{id} - stock ANTES ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "console.log('Status:', pm.response.code, 'Body:', pm.response.text());",
+                  "if (pm.response.code === 200) {",
+                  "  const s = pm.response.json().stockActual;",
+                  "  const n = Array.isArray(s) ? s.length : (typeof s === 'number' ? s : 0);",
+                  "  pm.collectionVariables.set('stockAntes', String(n));",
+                  "  console.log('stockActual (crudo):', JSON.stringify(s), '-> interpretado como', n);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseLogistica}}/api/depositos/{{depositoId}}",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "ck-0000002a-0000-4000-8000-000000000000",
+          "name": "B6.3 [Logística] POST /api/depositos/gestionar-donacion - donación SIN necesidad pendiente (debería ir entera a stock)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== B6.3 [Logística] POST /api/depositos/gestionar-donacion - donación SIN necesidad pendiente (debería ir entera a stock) ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "console.log('Status:', pm.response.code, 'Body:', pm.response.text());",
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "if (!ok) { console.warn('gestionar-donacion devolvió error -- puede ser el bug ya reportado (\"el sobrante no entra al stock\").'); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseLogistica}}/api/depositos/gestionar-donacion?depositoid={{depositoId}}&donacionid=ck-donacion-sobrante-{{runId}}&productoid=ck-prod-sobrante-{{runId}}&cantidad=15"
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "ck-0000002b-0000-4000-8000-000000000000",
+          "name": "B6.4 [Logística] GET /api/depositos/{id} - stock DESPUES (¿aparecen las 15 unidades?)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== B6.4 [Logística] GET /api/depositos/{id} - stock DESPUES (¿aparecen las 15 unidades?) ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "console.log('Status:', pm.response.code, 'Body:', pm.response.text());",
+                  "if (pm.response.code === 200) {",
+                  "  const antes = Number(pm.collectionVariables.get('stockAntes') || '0');",
+                  "  const s = pm.response.json().stockActual;",
+                  "  const despues = Array.isArray(s) ? s.length : (typeof s === 'number' ? s : 0);",
+                  "  console.log('Stock antes:', antes, '- despues:', despues, '(esperábamos +15)');",
+                  "  if (despues < antes + 15) { console.warn('El stock no subió en 15 como se esperaba -- coincide con el bug ya reportado: \"el sobrante no entra al stock\".'); } else { console.log('El sobrante SÍ entró al stock correctamente.'); }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseLogistica}}/api/depositos/{{depositoId}}",
+            "header": []
+          },
+          "response": [],
+          "description": "Este es el item que el checklist ya marca como roto (\"hoy falla en Logística\"). Lo dejamos acá para tener evidencia reproducible, no para \"arreglarlo\" (es código de otro módulo)."
+        }
+      ],
+      "description": ""
+    },
+    {
+      "id": "ck-0000003c-0000-4000-8000-000000000000",
+      "name": "B7 - Diferenciar MATCHMAKING vs SOLICITUD_DONADORES",
+      "item": [
+        {
+          "id": "ck-0000002c-0000-4000-8000-000000000000",
+          "name": "B7.1 [Logística] GET /api/asignaciones/paquetes/{id} - inspeccionar shape de una asignación (id inventado, esperado 404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== B7.1 [Logística] GET /api/asignaciones/paquetes/{id} - inspeccionar shape de una asignación (id inventado, esperado 404) ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "console.log('Status:', pm.response.code, 'Body:', pm.response.text());",
+                  "console.log('No tenemos forma de listar asignaciones existentes sin un paqueteID real -- si el equipo tiene uno a mano, reemplazar esta URL y volver a correr para ver si la respuesta incluye un campo tipo \"origen\".');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseLogistica}}/api/asignaciones/paquetes/no-existe-{{runId}}",
+            "header": []
+          },
+          "response": [],
+          "description": "El endpoint POST /asignaciones/solicitud que mencionó el compañero de Logística (para diferenciar MATCHMAKING de SOLICITUD_DONADORES) todavía no existe según su propio documento (\"contrato pendiente de implementación\"), así que no lo probamos -- probarlo sería inventar una URL. Este item solo confirma la forma de la respuesta de asignaciones existentes, si se le da un paqueteID real."
+        }
+      ],
+      "description": ""
+    },
+    {
+      "id": "ck-0000003d-0000-4000-8000-000000000000",
+      "name": "C3 - Endpoints de consulta (los 4 modulos)",
+      "item": [
+        {
+          "id": "ck-0000002d-0000-4000-8000-000000000000",
+          "name": "C3.1 [Incentivos] GET /misiones",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== C3.1 [Incentivos] GET /misiones ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseIncentivos}}/misiones",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "ck-0000002e-0000-4000-8000-000000000000",
+          "name": "C3.2 [Incentivos] GET /insignias",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== C3.2 [Incentivos] GET /insignias ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseIncentivos}}/insignias",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "ck-0000002f-0000-4000-8000-000000000000",
+          "name": "C3.3 [Donaciones] GET /donaciones",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== C3.3 [Donaciones] GET /donaciones ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseDonaciones}}/donaciones",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "ck-00000030-0000-4000-8000-000000000000",
+          "name": "C3.4 [Donadores y Entidades] GET /donadores",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== C3.4 [Donadores y Entidades] GET /donadores ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseDonadoresYEntidades}}/donadores",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "ck-00000031-0000-4000-8000-000000000000",
+          "name": "C3.5 [Donadores y Entidades] GET /entidades",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== C3.5 [Donadores y Entidades] GET /entidades ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseDonadoresYEntidades}}/entidades",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        },
+        {
+          "id": "ck-00000032-0000-4000-8000-000000000000",
+          "name": "C3.6 [Logística] GET /api/depositos/{id} - depósito conocido DEP-UTN-01",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('=== C3.6 [Logística] GET /api/depositos/{id} - depósito conocido DEP-UTN-01 ===');",
+                  "console.log('Status:', pm.response.code, pm.response.status);",
+                  "console.log('Body:', pm.response.text());",
+                  "pm.test('Status 200', () => pm.expect(pm.response.code, pm.response.text()).to.eql(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseLogistica}}/api/depositos/DEP-UTN-01",
+            "header": []
+          },
+          "response": [],
+          "description": ""
+        }
+      ],
+      "description": ""
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (!pm.collectionVariables.get('runId')) {",
+          "  pm.collectionVariables.set('runId', Date.now().toString());",
+          "}",
+          "const runId = pm.collectionVariables.get('runId');",
+          "const ids = {",
+          "  donadorEntregaId: 'ck-entrega-' + runId,",
+          "  entidadId: 'ck-entidad-' + runId,",
+          "  productoValidoId: 'ck-prod-valido-' + runId,",
+          "  identificadorQRId: 'ck-qr-' + runId,",
+          "  identificadorBarcodeId: 'ck-barcode-' + runId,",
+          "  productoQRPar: 'ck-prodqr-' + runId,",
+          "  productoQRImpar: 'ck-prodqrimpar-' + runId,",
+          "  productoBarcodeOk: 'ck-prodbc-ok-' + runId,",
+          "  productoBarcodeMal: 'ck-prodbc-mal-' + runId,",
+          "  necesidadValidaId: 'ck-nec-valida-' + runId,",
+          "  necesidadExtraId: 'ck-nec-extra-' + runId,",
+          "  necesidadRecId: 'ck-nec-rec-' + runId,",
+          "  depositoId: 'ck-dep-' + runId,",
+          "  donadorBaneadoId: 'ck-baneado-' + runId,",
+          "  donadorQuejasId: 'ck-quejas-' + runId,",
+          "  donadorMatchAId: 'ck-matchA-' + runId,",
+          "  donadorMatchBId: 'ck-matchB-' + runId,",
+          "  productoMatchId: 'ck-prodmatch-' + runId",
+          "};",
+          "Object.keys(ids).forEach((k) => { if (!pm.collectionVariables.get(k)) pm.collectionVariables.set(k, ids[k]); });"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseIncentivos",
+      "value": "https://incentivos-wtbd.onrender.com",
+      "type": "string"
+    },
+    {
+      "key": "baseDonaciones",
+      "value": "https://donatrack-donaciones.onrender.com",
+      "type": "string"
+    },
+    {
+      "key": "baseDonadoresYEntidades",
+      "value": "https://donadoresyentidadesv2.onrender.com",
+      "type": "string"
+    },
+    {
+      "key": "baseLogistica",
+      "value": "https://logistica-i4rf.onrender.com",
+      "type": "string"
+    },
+    {
+      "key": "runId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "a1DonacionId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "necesidadExtraId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "necesidadRecId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "depositoId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "stockAntes",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
