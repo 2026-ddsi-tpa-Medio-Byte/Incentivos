@@ -12,6 +12,8 @@ import ar.edu.utn.dds.k3003.fachadas.FachadaIncentivos;
 import ar.edu.utn.dds.k3003.services.MisionEvaluatorService;
 import ar.edu.utn.dds.k3003.model.Insignia;
 import ar.edu.utn.dds.k3003.model.Mision;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +33,8 @@ import java.util.NoSuchElementException;
 @Service
 public class Fachada implements FachadaIncentivos {
 
+  private static final Logger log = LoggerFactory.getLogger(Fachada.class);
+
   private MisionRepository.RepoMisiones repoMisiones;
   private InsigniaRepository.RepoInsignias repoInsignias;
   private PerfilIncentivosRepository.RepoPerfiles repoPerfiles;
@@ -47,6 +51,7 @@ public class Fachada implements FachadaIncentivos {
   }
 
   public List<InsigniaDTO> getAllInsignias() {
+    log.info("Consultando listado de insignias (useJpa={})", useJpa);
     if (useJpa) {
       return insigniaJpaRepository.findAll().stream()
           .map(i -> new InsigniaDTO(i.getId(), i.getNombre(), i.getDescripcion()))
@@ -58,6 +63,7 @@ public class Fachada implements FachadaIncentivos {
   }
 
   public InsigniaDTO getInsigniaById(String id) {
+    log.info("Buscando insignia por id={}", id);
     Insignia i = null;
     if (useJpa) {
       i = insigniaJpaRepository.findById(id).orElse(null);
@@ -65,12 +71,14 @@ public class Fachada implements FachadaIncentivos {
       i = repoInsignias.getInsignias().stream().filter(ins -> ins.getId().equals(id)).findFirst().orElse(null);
     }
     if (i == null) {
+      log.warn("Insignia no encontrada id={}", id);
       throw new NoSuchElementException("Insignia no encontrada");
     }
     return new InsigniaDTO(i.getId(), i.getNombre(), i.getDescripcion());
   }
 
   public List<MisionDTO> getAllMisiones() {
+    log.info("Consultando listado de misiones (useJpa={})", useJpa);
     if (useJpa) {
       return misionJpaRepository.findAll().stream()
           .map(m -> new MisionDTO(m.getId(), m.getNombre(), m.getInsigniaID(), m.getCategoriaInicio(), m.getCategoriaFin(), m.getTipo()))
@@ -82,6 +90,7 @@ public class Fachada implements FachadaIncentivos {
   }
 
   public MisionDTO getMisionById(String id) {
+    log.info("Buscando misión por id={}", id);
     Mision m = null;
     if (useJpa) {
       m = misionJpaRepository.findById(id).orElse(null);
@@ -89,6 +98,7 @@ public class Fachada implements FachadaIncentivos {
       m = repoMisiones.getMisionByID(id);
     }
     if (m == null) {
+      log.warn("Misión no encontrada id={}", id);
       throw new NoSuchElementException("Misión no encontrada");
     }
     return new MisionDTO(m.getId(), m.getNombre(), m.getInsigniaID(), m.getCategoriaInicio(), m.getCategoriaFin(), m.getTipo());
@@ -134,6 +144,7 @@ public class Fachada implements FachadaIncentivos {
   }
   @Override
   public InsigniaDTO agregarInsignia(InsigniaDTO insigniaDTO){
+    log.info("Creando insignia: id={}, nombre={}", insigniaDTO != null ? insigniaDTO.id() : null, insigniaDTO != null ? insigniaDTO.nombre() : null);
     Insignia entidad = new Insignia(insigniaDTO.id(), insigniaDTO.nombre(), insigniaDTO.descripcion());
     Insignia agregada;
     if (useJpa) {
@@ -141,11 +152,13 @@ public class Fachada implements FachadaIncentivos {
     } else {
       agregada = repoInsignias.agregarInsignia(entidad);
     }
+    log.info("Insignia creada correctamente: id={}", agregada.getId());
     return new InsigniaDTO(agregada.getId(), agregada.getNombre(), agregada.getDescripcion());
   }
 
   @Override
   public MisionDTO agregarMision(MisionDTO misionDTO){
+    log.info("Creando misión: id={}, nombre={}", misionDTO != null ? misionDTO.id() : null, misionDTO != null ? misionDTO.nombre() : null);
     Mision entidad = new Mision(misionDTO.id(), misionDTO.nombre(), misionDTO.insigniaID(), misionDTO.categoriaInicio(), misionDTO.categoriaFin(), misionDTO.tipo());
     Mision agregada;
     if (useJpa) {
@@ -153,6 +166,7 @@ public class Fachada implements FachadaIncentivos {
     } else {
       agregada = repoMisiones.agregarMision(entidad);
     }
+    log.info("Misión creada correctamente: id={}", agregada.getId());
     return new MisionDTO(agregada.getId(), agregada.getNombre(), agregada.getInsigniaID(), agregada.getCategoriaInicio(), agregada.getCategoriaFin(), agregada.getTipo());
   }
 
@@ -167,21 +181,27 @@ public class Fachada implements FachadaIncentivos {
 
   @Override
   public List<InsigniaDTO> getInsigniasDeDonador(String donadorID) throws NoSuchElementException {
+    log.info("Consultando insignias del donador {}", donadorID);
     if (useJpa) {
       var perfilOpt = perfilJpaRepository.findById(donadorID);
       var insignias = perfilOpt.map(PerfilIncentivos::getInsignias).orElse(null);
-      if (insignias == null || insignias.isEmpty()) throw new NoSuchElementException("No hay insignias para el donador " + donadorID);
+      if (insignias == null || insignias.isEmpty()) {
+        log.warn("El donador {} no tiene insignias asignadas", donadorID);
+        throw new NoSuchElementException("No hay insignias para el donador " + donadorID);
+      }
       return insignias.stream().map(insignia -> new InsigniaDTO(insignia.getId(), insignia.getNombre(), insignia.getDescripcion())).toList();
     }
 
     if (!repoPerfiles.getInsigniasPorDonador().containsKey(donadorID)) {
       var donador = fachadaDonadoresYEntidades.buscarDonadorPorID(donadorID);
       if (donador == null) {
+        log.error("Intento de consultar insignias de donador inexistente: {}", donadorID);
         throw new RuntimeException("Donador no encontrado");
       }
     }
     List<String> insigniasIDs = repoPerfiles.getInsigniasPorDonador().get(donadorID);
     if (insigniasIDs == null || insigniasIDs.isEmpty()) {
+      log.warn("El donador {} no tiene insignias asignadas", donadorID);
       throw new NoSuchElementException("No hay insignias para el donador " + donadorID);
     }
     List<Insignia> insignias = repoInsignias.getInsignias().stream().filter(insignia -> insigniasIDs.contains(insignia.getId())).toList();
@@ -191,12 +211,19 @@ public class Fachada implements FachadaIncentivos {
 
   @Override
   public MisionDTO getMisionEnCursoDeDonador(String donadorID) {
+    log.info("Consultando misión actual del donador {}", donadorID);
     if (useJpa) {
       var perfilOpt = perfilJpaRepository.findById(donadorID);
       String misionID = perfilOpt.map(PerfilIncentivos::getMisionActualID).orElse(null);
-      if (misionID == null) throw new NoSuchElementException("No hay misión en curso para el donador " + donadorID);
+      if (misionID == null) {
+        log.warn("No hay misión en curso para el donador {}", donadorID);
+        throw new NoSuchElementException("No hay misión en curso para el donador " + donadorID);
+      }
       var misionOpt = misionJpaRepository.findById(misionID);
-      if (misionOpt.isEmpty()) throw new NoSuchElementException("Misión no encontrada");
+      if (misionOpt.isEmpty()) {
+        log.warn("La misión {} referenciada por el donador {} no existe", misionID, donadorID);
+        throw new NoSuchElementException("Misión no encontrada");
+      }
       Mision mision = misionOpt.get();
       return new MisionDTO(mision.getId(), mision.getNombre(), mision.getInsigniaID(), mision.getCategoriaInicio(), mision.getCategoriaFin(), mision.getTipo());
     }
@@ -204,16 +231,20 @@ public class Fachada implements FachadaIncentivos {
     if (!repoPerfiles.getMisionesPorDonador().containsKey(donadorID)) {
       var donador = fachadaDonadoresYEntidades.buscarDonadorPorID(donadorID);
       if (donador == null) {
+        log.error("Intento de consultar misión de donador inexistente: {}", donadorID);
         throw new RuntimeException("Donador no encontrado");
       }
+      log.warn("No hay misión en curso para el donador {}", donadorID);
       throw new NoSuchElementException("No hay misión en curso para el donador " + donadorID);
     }
     String misionID = repoPerfiles.getMisionesPorDonador().get(donadorID);
     if (misionID == null) {
+      log.warn("No hay misión en curso para el donador {}", donadorID);
       throw new NoSuchElementException("No hay misión en curso para el donador " + donadorID);
     }
     Mision mision = repoMisiones.getMisionByID(misionID);
     if (mision == null) {
+      log.warn("La misión {} referenciada por el donador {} no existe", misionID, donadorID);
       throw new NoSuchElementException("Misión no encontrada");
     }
     return new MisionDTO(mision.getId(), mision.getNombre(), mision.getInsigniaID(), mision.getCategoriaInicio(), mision.getCategoriaFin(), mision.getTipo());
@@ -266,7 +297,9 @@ public class Fachada implements FachadaIncentivos {
 
   @Override
   public void asignarMisionADonador(String donadorID, MisionDTO misionDTO) throws NoSuchElementException {
+    log.info("Asignando misión {} al donador {}", misionDTO != null ? misionDTO.id() : null, donadorID);
     if (misionDTO == null) {
+      log.error("Se intentó asignar una misión nula al donador {}", donadorID);
       throw new RuntimeException("Mision nula");
     }
     fachadaDonadoresYEntidades.buscarDonadorPorID(donadorID);
@@ -276,17 +309,21 @@ public class Fachada implements FachadaIncentivos {
       Mision mision = misionOpt.orElseGet(() -> misionJpaRepository.save(new Mision(misionDTO.id(), misionDTO.nombre(), misionDTO.insigniaID(), misionDTO.categoriaInicio(), misionDTO.categoriaFin(), misionDTO.tipo())));
       perfil.setMisionActualID(mision.getId());
       perfilJpaRepository.save(perfil);
+      log.info("Misión {} asignada correctamente al donador {}", mision.getId(), donadorID);
       return;
     }
     repoPerfiles.asignarMisionADonador(donadorID, misionDTO.id());
     if (repoMisiones.getMisionByID(misionDTO.id()) == null) {
       repoMisiones.agregarMision(new Mision(misionDTO.id(), misionDTO.nombre(), misionDTO.insigniaID(), misionDTO.categoriaInicio(), misionDTO.categoriaFin(), misionDTO.tipo()));
     }
+    log.info("Misión {} asignada correctamente al donador {}", misionDTO.id(), donadorID);
   }
 
   @Override
   public void asignarInsigniaADonador(String donadorID, InsigniaDTO insigniaDTO) throws NoSuchElementException {
+    log.info("Asignando insignia {} al donador {}", insigniaDTO != null ? insigniaDTO.id() : null, donadorID);
     if (insigniaDTO == null) {
+      log.error("Se intentó asignar una insignia nula al donador {}", donadorID);
       throw new RuntimeException("Insignia nula");
     }
     fachadaDonadoresYEntidades.buscarDonadorPorID(donadorID);
@@ -299,12 +336,14 @@ public class Fachada implements FachadaIncentivos {
       if (perfil.getInsignias() == null) perfil.setInsignias(new java.util.ArrayList<>());
       perfil.getInsignias().add(insignia);
       perfilJpaRepository.save(perfil);
+      log.info("Insignia {} asignada correctamente al donador {}", insignia.getId(), donadorID);
       return;
     }
     if (repoInsignias.getInsignias().stream().noneMatch(i -> i.getId().equals(insigniaDTO.id()))) {
       repoInsignias.agregarInsignia(new Insignia(insigniaDTO.id(), insigniaDTO.nombre(), insigniaDTO.descripcion()));
     }
     repoPerfiles.asignarInsigniaADonador(donadorID, insigniaDTO.id());
+    log.info("Insignia {} asignada correctamente al donador {}", insigniaDTO.id(), donadorID);
   }
 
   // @Transactional es necesario acá: sin él, revisarPerdidaDeProgreso funciona cuando lo llama un
@@ -316,15 +355,18 @@ public class Fachada implements FachadaIncentivos {
   @Override
   @Transactional
   public void procesarDonador(String donadorID) throws NoSuchElementException {
+    log.info("Procesando donador {} para evaluar incentivos y progreso", donadorID);
     fachadaDonadoresYEntidades.buscarDonadorPorID(donadorID);
     revisarPerdidaDeProgreso(donadorID);
     DonacionDTO donacionAProcesar = fachadaDonaciones.buscarPorDonadorYFechaInicio(donadorID, null).getFirst();
+    log.info("Última donación del donador {}: estado={}", donadorID, donacionAProcesar.estado());
     if (donacionAProcesar.estado().equals(EstadoDonacionEnum.ACEPTADA)) { // Donacion OK
       MisionDTO misionActual = this.getMisionEnCursoDeDonador(donadorID);
 
       if (misionActual != null) {
         // Evaluar si el donador cumple con la misión según su tipo
         boolean cumpleMision = misionEvaluatorService.evaluarMision(donadorID, misionActual.tipo());
+        log.info("Resultado evaluación misión {} para donador {}: {}", misionActual.id(), donadorID, cumpleMision);
 
         if (cumpleMision) {
           if (misionActual.insigniaID() != null) {
@@ -347,6 +389,7 @@ public class Fachada implements FachadaIncentivos {
             } else {
               repoPerfiles.agregarCategoriADonador(donadorID, misionActual.categoriaFin());
             }
+            log.info("Categoría actualizada para donador {}: {}", donadorID, misionActual.categoriaFin());
           }
         }
       }
