@@ -1,0 +1,13 @@
+{
+  "name": "Incentivos - fallos al procesar donadores",
+  "type": "query alert",
+  "query": "sum(last_5m):sum:incentivos.donador.procesamientos{application:incentivos,env:prod,resultado:error}.as_count() > 0",
+  "message": "Se registró al menos un error de procesamiento de donador en Incentivos durante los últimos 5 minutos. Revisar logs del servicio y dependencias Donaciones/Donadores y Entidades.",
+  "tags": ["service:incentivos", "env:prod", "owner:incentivos"],
+  "options": {
+    "thresholds": { "critical": 0 },
+    "notify_no_data": false,
+    "include_tags": true,
+    "require_full_window": false
+  }
+}

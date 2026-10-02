@@ -1,0 +1,13 @@
+{
+  "name": "Incentivos - pérdida de progreso de donadores",
+  "type": "query alert",
+  "query": "sum(last_15m):sum:incentivos.progreso.perdido{application:incentivos,env:prod}.as_count() > 0",
+  "message": "Se detectó pérdida de progreso en uno o más donadores de Incentivos. Revisar quejas y conteos de donaciones ACEPTADA; confirmar que el retiro de insignia y la restitución de categoría sean esperados.",
+  "tags": ["service:incentivos", "env:prod", "owner:incentivos", "business:progress-regression"],
+  "options": {
+    "thresholds": { "critical": 0 },
+    "notify_no_data": false,
+    "include_tags": true,
+    "require_full_window": false
+  }
+}

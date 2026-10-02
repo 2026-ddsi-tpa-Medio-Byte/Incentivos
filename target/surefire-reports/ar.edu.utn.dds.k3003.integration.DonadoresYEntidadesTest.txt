@@ -1,14 +1,11 @@
 -------------------------------------------------------------------------------
 Test set: ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest
 -------------------------------------------------------------------------------
-Tests run: 8, Failures: 0, Errors: 6, Skipped: 0, Time elapsed: 160.9 s <<< FAILURE! -- in ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest
-ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testModificarEstadoYCategoria -- Time elapsed: 158.7 s <<< ERROR!
-org.springframework.web.client.HttpClientErrorException$BadRequest: 400 Bad Request on POST request for "https://donadoresyentidadesv2.onrender.com/donadores": "Ya existe un donador con ese ID"
-	at org.springframework.web.client.HttpClientErrorException.create(HttpClientErrorException.java:103)
-	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:186)
-	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:147)
-	at org.springframework.web.client.RestTemplate.handleResponse(RestTemplate.java:953)
-	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:902)
+Tests run: 8, Failures: 0, Errors: 6, Skipped: 0, Time elapsed: 24.87 s <<< FAILURE! -- in ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest
+ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testModificarEstadoYCategoria -- Time elapsed: 24.79 s <<< ERROR!
+org.springframework.web.client.ResourceAccessException: I/O error on POST request for "https://donadoresyentidadesv2.onrender.com/donadores": Se ha anulado una conexión establecida por el software en su equipo host.
+	at org.springframework.web.client.RestTemplate.createResourceAccessException(RestTemplate.java:926)
+	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:906)
 	at org.springframework.web.client.RestTemplate.execute(RestTemplate.java:801)
 	at org.springframework.web.client.RestTemplate.postForObject(RestTemplate.java:518)
 	at ar.edu.utn.dds.k3003.fachadas.FachadaDonadoresYEntidadesImpl.agregarDonador(FachadaDonadoresYEntidadesImpl.java:43)
@@ -16,14 +13,40 @@ org.springframework.web.client.HttpClientErrorException$BadRequest: 400 Bad Requ
 	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
-
-ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testNecesidades -- Time elapsed: 0.321 s <<< ERROR!
-org.springframework.web.client.HttpClientErrorException$BadRequest: 400 Bad Request on POST request for "https://donadoresyentidadesv2.onrender.com/entidades": "Ya existe una entidad con ese ID"
-	at org.springframework.web.client.HttpClientErrorException.create(HttpClientErrorException.java:103)
-	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:186)
-	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:147)
-	at org.springframework.web.client.RestTemplate.handleResponse(RestTemplate.java:953)
+Caused by: java.net.SocketException: Se ha anulado una conexión establecida por el software en su equipo host.
+	at java.base/sun.nio.ch.SocketDispatcher.read0(Native Method)
+	at java.base/sun.nio.ch.SocketDispatcher.read(SocketDispatcher.java:46)
+	at java.base/sun.nio.ch.NioSocketImpl.tryRead(NioSocketImpl.java:256)
+	at java.base/sun.nio.ch.NioSocketImpl.implRead(NioSocketImpl.java:307)
+	at java.base/sun.nio.ch.NioSocketImpl.read(NioSocketImpl.java:346)
+	at java.base/sun.nio.ch.NioSocketImpl$1.read(NioSocketImpl.java:796)
+	at java.base/java.net.Socket$SocketInputStream.implRead(Socket.java:1108)
+	at java.base/java.net.Socket$SocketInputStream.read(Socket.java:1095)
+	at java.base/sun.security.ssl.SSLSocketInputRecord.read(SSLSocketInputRecord.java:489)
+	at java.base/sun.security.ssl.SSLSocketInputRecord.readHeader(SSLSocketInputRecord.java:483)
+	at java.base/sun.security.ssl.SSLSocketInputRecord.bytesInCompletePacket(SSLSocketInputRecord.java:70)
+	at java.base/sun.security.ssl.SSLSocketImpl.readApplicationRecord(SSLSocketImpl.java:1462)
+	at java.base/sun.security.ssl.SSLSocketImpl$AppInputStream.read(SSLSocketImpl.java:1068)
+	at java.base/java.io.BufferedInputStream.fill(BufferedInputStream.java:291)
+	at java.base/java.io.BufferedInputStream.read1(BufferedInputStream.java:347)
+	at java.base/java.io.BufferedInputStream.implRead(BufferedInputStream.java:420)
+	at java.base/java.io.BufferedInputStream.read(BufferedInputStream.java:399)
+	at java.base/sun.net.www.http.HttpClient.parseHTTPHeader(HttpClient.java:827)
+	at java.base/sun.net.www.http.HttpClient.parseHTTP(HttpClient.java:759)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream0(HttpURLConnection.java:1706)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream(HttpURLConnection.java:1615)
+	at java.base/java.net.HttpURLConnection.getResponseCode(HttpURLConnection.java:531)
+	at java.base/sun.net.www.protocol.https.HttpsURLConnectionImpl.getResponseCode(HttpsURLConnectionImpl.java:307)
+	at org.springframework.http.client.SimpleClientHttpResponse.getStatusCode(SimpleClientHttpResponse.java:56)
+	at org.springframework.web.client.DefaultResponseErrorHandler.hasError(DefaultResponseErrorHandler.java:84)
+	at org.springframework.web.client.RestTemplate.handleResponse(RestTemplate.java:942)
 	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:902)
+	... 7 more
+
+ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testNecesidades -- Time elapsed: 0.010 s <<< ERROR!
+org.springframework.web.client.ResourceAccessException: I/O error on POST request for "https://donadoresyentidadesv2.onrender.com/entidades": Network is unreachable: connect
+	at org.springframework.web.client.RestTemplate.createResourceAccessException(RestTemplate.java:926)
+	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:906)
 	at org.springframework.web.client.RestTemplate.execute(RestTemplate.java:801)
 	at org.springframework.web.client.RestTemplate.postForObject(RestTemplate.java:518)
 	at ar.edu.utn.dds.k3003.fachadas.FachadaDonadoresYEntidadesImpl.agregarEntidad(FachadaDonadoresYEntidadesImpl.java:59)
@@ -31,14 +54,35 @@ org.springframework.web.client.HttpClientErrorException$BadRequest: 400 Bad Requ
 	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+Caused by: java.net.SocketException: Network is unreachable: connect
+	at java.base/sun.nio.ch.Net.connect0(Native Method)
+	at java.base/sun.nio.ch.Net.connect(Net.java:589)
+	at java.base/sun.nio.ch.Net.connect(Net.java:578)
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:583)
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+	at java.base/java.net.Socket.connect(Socket.java:752)
+	at java.base/sun.security.ssl.SSLSocketImpl.connect(SSLSocketImpl.java:304)
+	at java.base/sun.security.ssl.BaseSSLSocketImpl.connect(BaseSSLSocketImpl.java:181)
+	at java.base/sun.net.NetworkClient.doConnect(NetworkClient.java:183)
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:531)
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:636)
+	at java.base/sun.net.www.protocol.https.HttpsClient.<init>(HttpsClient.java:264)
+	at java.base/sun.net.www.protocol.https.HttpsClient.New(HttpsClient.java:377)
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.getNewHttpClient(AbstractDelegateHttpsURLConnection.java:193)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect0(HttpURLConnection.java:1243)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect(HttpURLConnection.java:1129)
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.connect(AbstractDelegateHttpsURLConnection.java:179)
+	at java.base/sun.net.www.protocol.https.HttpsURLConnectionImpl.connect(HttpsURLConnectionImpl.java:141)
+	at org.springframework.http.client.SimpleClientHttpRequest.executeInternal(SimpleClientHttpRequest.java:79)
+	at org.springframework.http.client.AbstractStreamingClientHttpRequest.executeInternal(AbstractStreamingClientHttpRequest.java:88)
+	at org.springframework.http.client.AbstractClientHttpRequest.execute(AbstractClientHttpRequest.java:81)
+	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:900)
+	... 7 more
 
-ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testPuedeDonarYEstadisticas -- Time elapsed: 0.264 s <<< ERROR!
-org.springframework.web.client.HttpClientErrorException$BadRequest: 400 Bad Request on POST request for "https://donadoresyentidadesv2.onrender.com/donadores": "Ya existe un donador con ese ID"
-	at org.springframework.web.client.HttpClientErrorException.create(HttpClientErrorException.java:103)
-	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:186)
-	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:147)
-	at org.springframework.web.client.RestTemplate.handleResponse(RestTemplate.java:953)
-	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:902)
+ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testPuedeDonarYEstadisticas -- Time elapsed: 0.010 s <<< ERROR!
+org.springframework.web.client.ResourceAccessException: I/O error on POST request for "https://donadoresyentidadesv2.onrender.com/donadores": Network is unreachable: connect
+	at org.springframework.web.client.RestTemplate.createResourceAccessException(RestTemplate.java:926)
+	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:906)
 	at org.springframework.web.client.RestTemplate.execute(RestTemplate.java:801)
 	at org.springframework.web.client.RestTemplate.postForObject(RestTemplate.java:518)
 	at ar.edu.utn.dds.k3003.fachadas.FachadaDonadoresYEntidadesImpl.agregarDonador(FachadaDonadoresYEntidadesImpl.java:43)
@@ -46,14 +90,35 @@ org.springframework.web.client.HttpClientErrorException$BadRequest: 400 Bad Requ
 	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+Caused by: java.net.SocketException: Network is unreachable: connect
+	at java.base/sun.nio.ch.Net.connect0(Native Method)
+	at java.base/sun.nio.ch.Net.connect(Net.java:589)
+	at java.base/sun.nio.ch.Net.connect(Net.java:578)
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:583)
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+	at java.base/java.net.Socket.connect(Socket.java:752)
+	at java.base/sun.security.ssl.SSLSocketImpl.connect(SSLSocketImpl.java:304)
+	at java.base/sun.security.ssl.BaseSSLSocketImpl.connect(BaseSSLSocketImpl.java:181)
+	at java.base/sun.net.NetworkClient.doConnect(NetworkClient.java:183)
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:531)
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:636)
+	at java.base/sun.net.www.protocol.https.HttpsClient.<init>(HttpsClient.java:264)
+	at java.base/sun.net.www.protocol.https.HttpsClient.New(HttpsClient.java:377)
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.getNewHttpClient(AbstractDelegateHttpsURLConnection.java:193)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect0(HttpURLConnection.java:1243)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect(HttpURLConnection.java:1129)
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.connect(AbstractDelegateHttpsURLConnection.java:179)
+	at java.base/sun.net.www.protocol.https.HttpsURLConnectionImpl.connect(HttpsURLConnectionImpl.java:141)
+	at org.springframework.http.client.SimpleClientHttpRequest.executeInternal(SimpleClientHttpRequest.java:79)
+	at org.springframework.http.client.AbstractStreamingClientHttpRequest.executeInternal(AbstractStreamingClientHttpRequest.java:88)
+	at org.springframework.http.client.AbstractClientHttpRequest.execute(AbstractClientHttpRequest.java:81)
+	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:900)
+	... 7 more
 
-ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testAgregarYBuscarDonador -- Time elapsed: 0.269 s <<< ERROR!
-org.springframework.web.client.HttpClientErrorException$BadRequest: 400 Bad Request on POST request for "https://donadoresyentidadesv2.onrender.com/donadores": "Ya existe un donador con ese ID"
-	at org.springframework.web.client.HttpClientErrorException.create(HttpClientErrorException.java:103)
-	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:186)
-	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:147)
-	at org.springframework.web.client.RestTemplate.handleResponse(RestTemplate.java:953)
-	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:902)
+ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testAgregarYBuscarDonador -- Time elapsed: 0.011 s <<< ERROR!
+org.springframework.web.client.ResourceAccessException: I/O error on POST request for "https://donadoresyentidadesv2.onrender.com/donadores": Network is unreachable: connect
+	at org.springframework.web.client.RestTemplate.createResourceAccessException(RestTemplate.java:926)
+	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:906)
 	at org.springframework.web.client.RestTemplate.execute(RestTemplate.java:801)
 	at org.springframework.web.client.RestTemplate.postForObject(RestTemplate.java:518)
 	at ar.edu.utn.dds.k3003.fachadas.FachadaDonadoresYEntidadesImpl.agregarDonador(FachadaDonadoresYEntidadesImpl.java:43)
@@ -61,14 +126,35 @@ org.springframework.web.client.HttpClientErrorException$BadRequest: 400 Bad Requ
 	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+Caused by: java.net.SocketException: Network is unreachable: connect
+	at java.base/sun.nio.ch.Net.connect0(Native Method)
+	at java.base/sun.nio.ch.Net.connect(Net.java:589)
+	at java.base/sun.nio.ch.Net.connect(Net.java:578)
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:583)
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+	at java.base/java.net.Socket.connect(Socket.java:752)
+	at java.base/sun.security.ssl.SSLSocketImpl.connect(SSLSocketImpl.java:304)
+	at java.base/sun.security.ssl.BaseSSLSocketImpl.connect(BaseSSLSocketImpl.java:181)
+	at java.base/sun.net.NetworkClient.doConnect(NetworkClient.java:183)
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:531)
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:636)
+	at java.base/sun.net.www.protocol.https.HttpsClient.<init>(HttpsClient.java:264)
+	at java.base/sun.net.www.protocol.https.HttpsClient.New(HttpsClient.java:377)
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.getNewHttpClient(AbstractDelegateHttpsURLConnection.java:193)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect0(HttpURLConnection.java:1243)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect(HttpURLConnection.java:1129)
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.connect(AbstractDelegateHttpsURLConnection.java:179)
+	at java.base/sun.net.www.protocol.https.HttpsURLConnectionImpl.connect(HttpsURLConnectionImpl.java:141)
+	at org.springframework.http.client.SimpleClientHttpRequest.executeInternal(SimpleClientHttpRequest.java:79)
+	at org.springframework.http.client.AbstractStreamingClientHttpRequest.executeInternal(AbstractStreamingClientHttpRequest.java:88)
+	at org.springframework.http.client.AbstractClientHttpRequest.execute(AbstractClientHttpRequest.java:81)
+	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:900)
+	... 7 more
 
-ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testQuejas -- Time elapsed: 0.235 s <<< ERROR!
-org.springframework.web.client.HttpClientErrorException$BadRequest: 400 Bad Request on POST request for "https://donadoresyentidadesv2.onrender.com/donadores": "Ya existe un donador con ese ID"
-	at org.springframework.web.client.HttpClientErrorException.create(HttpClientErrorException.java:103)
-	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:186)
-	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:147)
-	at org.springframework.web.client.RestTemplate.handleResponse(RestTemplate.java:953)
-	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:902)
+ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testQuejas -- Time elapsed: 0.008 s <<< ERROR!
+org.springframework.web.client.ResourceAccessException: I/O error on POST request for "https://donadoresyentidadesv2.onrender.com/donadores": Network is unreachable: connect
+	at org.springframework.web.client.RestTemplate.createResourceAccessException(RestTemplate.java:926)
+	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:906)
 	at org.springframework.web.client.RestTemplate.execute(RestTemplate.java:801)
 	at org.springframework.web.client.RestTemplate.postForObject(RestTemplate.java:518)
 	at ar.edu.utn.dds.k3003.fachadas.FachadaDonadoresYEntidadesImpl.agregarDonador(FachadaDonadoresYEntidadesImpl.java:43)
@@ -76,14 +162,35 @@ org.springframework.web.client.HttpClientErrorException$BadRequest: 400 Bad Requ
 	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+Caused by: java.net.SocketException: Network is unreachable: connect
+	at java.base/sun.nio.ch.Net.connect0(Native Method)
+	at java.base/sun.nio.ch.Net.connect(Net.java:589)
+	at java.base/sun.nio.ch.Net.connect(Net.java:578)
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:583)
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+	at java.base/java.net.Socket.connect(Socket.java:752)
+	at java.base/sun.security.ssl.SSLSocketImpl.connect(SSLSocketImpl.java:304)
+	at java.base/sun.security.ssl.BaseSSLSocketImpl.connect(BaseSSLSocketImpl.java:181)
+	at java.base/sun.net.NetworkClient.doConnect(NetworkClient.java:183)
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:531)
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:636)
+	at java.base/sun.net.www.protocol.https.HttpsClient.<init>(HttpsClient.java:264)
+	at java.base/sun.net.www.protocol.https.HttpsClient.New(HttpsClient.java:377)
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.getNewHttpClient(AbstractDelegateHttpsURLConnection.java:193)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect0(HttpURLConnection.java:1243)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect(HttpURLConnection.java:1129)
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.connect(AbstractDelegateHttpsURLConnection.java:179)
+	at java.base/sun.net.www.protocol.https.HttpsURLConnectionImpl.connect(HttpsURLConnectionImpl.java:141)
+	at org.springframework.http.client.SimpleClientHttpRequest.executeInternal(SimpleClientHttpRequest.java:79)
+	at org.springframework.http.client.AbstractStreamingClientHttpRequest.executeInternal(AbstractStreamingClientHttpRequest.java:88)
+	at org.springframework.http.client.AbstractClientHttpRequest.execute(AbstractClientHttpRequest.java:81)
+	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:900)
+	... 7 more
 
-ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testAgregarYBuscarEntidad -- Time elapsed: 0.259 s <<< ERROR!
-org.springframework.web.client.HttpClientErrorException$BadRequest: 400 Bad Request on POST request for "https://donadoresyentidadesv2.onrender.com/entidades": "Ya existe una entidad con ese ID"
-	at org.springframework.web.client.HttpClientErrorException.create(HttpClientErrorException.java:103)
-	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:186)
-	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:147)
-	at org.springframework.web.client.RestTemplate.handleResponse(RestTemplate.java:953)
-	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:902)
+ar.edu.utn.dds.k3003.integration.DonadoresYEntidadesTest.testAgregarYBuscarEntidad -- Time elapsed: 0.005 s <<< ERROR!
+org.springframework.web.client.ResourceAccessException: I/O error on POST request for "https://donadoresyentidadesv2.onrender.com/entidades": Network is unreachable: connect
+	at org.springframework.web.client.RestTemplate.createResourceAccessException(RestTemplate.java:926)
+	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:906)
 	at org.springframework.web.client.RestTemplate.execute(RestTemplate.java:801)
 	at org.springframework.web.client.RestTemplate.postForObject(RestTemplate.java:518)
 	at ar.edu.utn.dds.k3003.fachadas.FachadaDonadoresYEntidadesImpl.agregarEntidad(FachadaDonadoresYEntidadesImpl.java:59)
@@ -91,4 +198,28 @@ org.springframework.web.client.HttpClientErrorException$BadRequest: 400 Bad Requ
 	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+Caused by: java.net.SocketException: Network is unreachable: connect
+	at java.base/sun.nio.ch.Net.connect0(Native Method)
+	at java.base/sun.nio.ch.Net.connect(Net.java:589)
+	at java.base/sun.nio.ch.Net.connect(Net.java:578)
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:583)
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+	at java.base/java.net.Socket.connect(Socket.java:752)
+	at java.base/sun.security.ssl.SSLSocketImpl.connect(SSLSocketImpl.java:304)
+	at java.base/sun.security.ssl.BaseSSLSocketImpl.connect(BaseSSLSocketImpl.java:181)
+	at java.base/sun.net.NetworkClient.doConnect(NetworkClient.java:183)
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:531)
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:636)
+	at java.base/sun.net.www.protocol.https.HttpsClient.<init>(HttpsClient.java:264)
+	at java.base/sun.net.www.protocol.https.HttpsClient.New(HttpsClient.java:377)
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.getNewHttpClient(AbstractDelegateHttpsURLConnection.java:193)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect0(HttpURLConnection.java:1243)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect(HttpURLConnection.java:1129)
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.connect(AbstractDelegateHttpsURLConnection.java:179)
+	at java.base/sun.net.www.protocol.https.HttpsURLConnectionImpl.connect(HttpsURLConnectionImpl.java:141)
+	at org.springframework.http.client.SimpleClientHttpRequest.executeInternal(SimpleClientHttpRequest.java:79)
+	at org.springframework.http.client.AbstractStreamingClientHttpRequest.executeInternal(AbstractStreamingClientHttpRequest.java:88)
+	at org.springframework.http.client.AbstractClientHttpRequest.execute(AbstractClientHttpRequest.java:81)
+	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:900)
+	... 7 more
 

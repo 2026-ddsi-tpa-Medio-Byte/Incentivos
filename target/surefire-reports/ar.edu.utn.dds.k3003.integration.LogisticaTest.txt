@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------------
 Test set: ar.edu.utn.dds.k3003.integration.LogisticaTest
 -------------------------------------------------------------------------------
-Tests run: 5, Failures: 1, Errors: 1, Skipped: 0, Time elapsed: 120.4 s <<< FAILURE! -- in ar.edu.utn.dds.k3003.integration.LogisticaTest
-ar.edu.utn.dds.k3003.integration.LogisticaTest.testAgregarDepositoYGestionarDonacion -- Time elapsed: 119.1 s <<< ERROR!
-org.springframework.web.client.RestClientException: Error while extracting response for type [class ar.edu.utn.dds.k3003.dtos.logistica.DepositoDTO] and content type [application/xml;charset=UTF-8]
-	at org.springframework.web.client.HttpMessageConverterExtractor.extractData(HttpMessageConverterExtractor.java:127)
-	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:903)
+Tests run: 5, Failures: 1, Errors: 1, Skipped: 0, Time elapsed: 0.046 s <<< FAILURE! -- in ar.edu.utn.dds.k3003.integration.LogisticaTest
+ar.edu.utn.dds.k3003.integration.LogisticaTest.testAgregarDepositoYGestionarDonacion -- Time elapsed: 0.019 s <<< ERROR!
+org.springframework.web.client.ResourceAccessException: I/O error on POST request for "https://logistica-i4rf.onrender.com/api/depositos": logistica-i4rf.onrender.com
+	at org.springframework.web.client.RestTemplate.createResourceAccessException(RestTemplate.java:926)
+	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:906)
 	at org.springframework.web.client.RestTemplate.execute(RestTemplate.java:801)
 	at org.springframework.web.client.RestTemplate.postForObject(RestTemplate.java:518)
 	at ar.edu.utn.dds.k3003.fachadas.FachadaLogisticaImpl.agregarDeposito(FachadaLogisticaImpl.java:40)
@@ -13,35 +13,30 @@ org.springframework.web.client.RestClientException: Error while extracting respo
 	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
-Caused by: org.springframework.http.converter.HttpMessageNotReadableException: JSON parse error: Cannot deserialize value of type `java.util.ArrayList<ar.edu.utn.dds.k3003.dtos.logistica.PaqueteDTO>` from String value (token `JsonToken.VALUE_STRING`)
-	at org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter.readJavaType(AbstractJackson2HttpMessageConverter.java:408)
-	at org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter.read(AbstractJackson2HttpMessageConverter.java:356)
-	at org.springframework.web.client.HttpMessageConverterExtractor.extractData(HttpMessageConverterExtractor.java:105)
-	... 8 more
-Caused by: com.fasterxml.jackson.databind.exc.MismatchedInputException: Cannot deserialize value of type `java.util.ArrayList<ar.edu.utn.dds.k3003.dtos.logistica.PaqueteDTO>` from String value (token `JsonToken.VALUE_STRING`)
- at [Source: (org.springframework.util.StreamUtils$NonClosingInputStream); line: 1, column: 182] (through reference chain: ar.edu.utn.dds.k3003.dtos.logistica.DepositoDTO["stockActual"])
-	at com.fasterxml.jackson.databind.exc.MismatchedInputException.from(MismatchedInputException.java:59)
-	at com.fasterxml.jackson.databind.DeserializationContext.reportInputMismatch(DeserializationContext.java:1794)
-	at com.fasterxml.jackson.databind.DeserializationContext.handleUnexpectedToken(DeserializationContext.java:1568)
-	at com.fasterxml.jackson.databind.DeserializationContext.handleUnexpectedToken(DeserializationContext.java:1515)
-	at com.fasterxml.jackson.databind.deser.std.CollectionDeserializer.handleNonArray(CollectionDeserializer.java:404)
-	at com.fasterxml.jackson.databind.deser.std.CollectionDeserializer._deserializeFromString(CollectionDeserializer.java:331)
-	at com.fasterxml.jackson.databind.deser.std.CollectionDeserializer.deserialize(CollectionDeserializer.java:251)
-	at com.fasterxml.jackson.databind.deser.std.CollectionDeserializer.deserialize(CollectionDeserializer.java:29)
-	at com.fasterxml.jackson.databind.deser.SettableBeanProperty.deserialize(SettableBeanProperty.java:543)
-	at com.fasterxml.jackson.databind.deser.BeanDeserializer._deserializeWithErrorWrapping(BeanDeserializer.java:587)
-	at com.fasterxml.jackson.databind.deser.BeanDeserializer._deserializeUsingPropertyBased(BeanDeserializer.java:440)
-	at com.fasterxml.jackson.databind.deser.BeanDeserializerBase.deserializeFromObjectUsingNonDefault(BeanDeserializerBase.java:1499)
-	at com.fasterxml.jackson.databind.deser.BeanDeserializer.deserializeFromObject(BeanDeserializer.java:340)
-	at com.fasterxml.jackson.databind.deser.BeanDeserializer.deserialize(BeanDeserializer.java:177)
-	at com.fasterxml.jackson.dataformat.xml.deser.XmlDeserializationContext.readRootValue(XmlDeserializationContext.java:104)
-	at com.fasterxml.jackson.databind.ObjectReader._bindAndClose(ObjectReader.java:2130)
-	at com.fasterxml.jackson.databind.ObjectReader.readValue(ObjectReader.java:1500)
-	at org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter.readJavaType(AbstractJackson2HttpMessageConverter.java:397)
-	... 10 more
+Caused by: java.net.UnknownHostException: logistica-i4rf.onrender.com
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:567)
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+	at java.base/java.net.Socket.connect(Socket.java:752)
+	at java.base/sun.security.ssl.SSLSocketImpl.connect(SSLSocketImpl.java:304)
+	at java.base/sun.security.ssl.BaseSSLSocketImpl.connect(BaseSSLSocketImpl.java:181)
+	at java.base/sun.net.NetworkClient.doConnect(NetworkClient.java:183)
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:531)
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:636)
+	at java.base/sun.net.www.protocol.https.HttpsClient.<init>(HttpsClient.java:264)
+	at java.base/sun.net.www.protocol.https.HttpsClient.New(HttpsClient.java:377)
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.getNewHttpClient(AbstractDelegateHttpsURLConnection.java:193)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect0(HttpURLConnection.java:1243)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect(HttpURLConnection.java:1129)
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.connect(AbstractDelegateHttpsURLConnection.java:179)
+	at java.base/sun.net.www.protocol.https.HttpsURLConnectionImpl.connect(HttpsURLConnectionImpl.java:141)
+	at org.springframework.http.client.SimpleClientHttpRequest.executeInternal(SimpleClientHttpRequest.java:79)
+	at org.springframework.http.client.AbstractStreamingClientHttpRequest.executeInternal(AbstractStreamingClientHttpRequest.java:88)
+	at org.springframework.http.client.AbstractClientHttpRequest.execute(AbstractClientHttpRequest.java:81)
+	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:900)
+	... 7 more
 
-ar.edu.utn.dds.k3003.integration.LogisticaTest.testReportarEntrega -- Time elapsed: 0.311 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: Unexpected exception thrown: org.springframework.web.client.HttpServerErrorException$InternalServerError: 500 Internal Server Error on POST request for "https://logistica-i4rf.onrender.com/api/asignaciones/reportar-entrega": "<ReporteEntregaResponseDTO><mensajeDonacion>Error al procesar la entrega: No existe asignación para el paquete: null</mensajeDonacion><donacionId/><mensajeAsignacion/><asignacionId/></ReporteEntregaResponseDTO>"
+ar.edu.utn.dds.k3003.integration.LogisticaTest.testReportarEntrega -- Time elapsed: 0.008 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: Unexpected exception thrown: org.springframework.web.client.ResourceAccessException: I/O error on POST request for "https://logistica-i4rf.onrender.com/api/asignaciones/reportar-entrega": logistica-i4rf.onrender.com
 	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:152)
 	at org.junit.jupiter.api.AssertDoesNotThrow.createAssertionFailedError(AssertDoesNotThrow.java:84)
 	at org.junit.jupiter.api.AssertDoesNotThrow.assertDoesNotThrow(AssertDoesNotThrow.java:53)
@@ -51,16 +46,34 @@ org.opentest4j.AssertionFailedError: Unexpected exception thrown: org.springfram
 	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
-Caused by: org.springframework.web.client.HttpServerErrorException$InternalServerError: 500 Internal Server Error on POST request for "https://logistica-i4rf.onrender.com/api/asignaciones/reportar-entrega": "<ReporteEntregaResponseDTO><mensajeDonacion>Error al procesar la entrega: No existe asignación para el paquete: null</mensajeDonacion><donacionId/><mensajeAsignacion/><asignacionId/></ReporteEntregaResponseDTO>"
-	at org.springframework.web.client.HttpServerErrorException.create(HttpServerErrorException.java:102)
-	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:189)
-	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:147)
-	at org.springframework.web.client.RestTemplate.handleResponse(RestTemplate.java:953)
-	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:902)
+Caused by: org.springframework.web.client.ResourceAccessException: I/O error on POST request for "https://logistica-i4rf.onrender.com/api/asignaciones/reportar-entrega": logistica-i4rf.onrender.com
+	at org.springframework.web.client.RestTemplate.createResourceAccessException(RestTemplate.java:926)
+	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:906)
 	at org.springframework.web.client.RestTemplate.execute(RestTemplate.java:801)
 	at org.springframework.web.client.RestTemplate.postForObject(RestTemplate.java:518)
 	at ar.edu.utn.dds.k3003.fachadas.FachadaLogisticaImpl.reportarEntrega(FachadaLogisticaImpl.java:103)
-	at ar.edu.utn.dds.k3003.integration.LogisticaTest.lambda$testReportarEntrega$2(LogisticaTest.java:74)
+	at ar.edu.utn.dds.k3003.integration.LogisticaTest.lambda$2(LogisticaTest.java:74)
 	at org.junit.jupiter.api.AssertDoesNotThrow.assertDoesNotThrow(AssertDoesNotThrow.java:49)
 	... 6 more
+Caused by: java.net.UnknownHostException: logistica-i4rf.onrender.com
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:567)
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+	at java.base/java.net.Socket.connect(Socket.java:752)
+	at java.base/sun.security.ssl.SSLSocketImpl.connect(SSLSocketImpl.java:304)
+	at java.base/sun.security.ssl.BaseSSLSocketImpl.connect(BaseSSLSocketImpl.java:181)
+	at java.base/sun.net.NetworkClient.doConnect(NetworkClient.java:183)
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:531)
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:636)
+	at java.base/sun.net.www.protocol.https.HttpsClient.<init>(HttpsClient.java:264)
+	at java.base/sun.net.www.protocol.https.HttpsClient.New(HttpsClient.java:377)
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.getNewHttpClient(AbstractDelegateHttpsURLConnection.java:193)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect0(HttpURLConnection.java:1243)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect(HttpURLConnection.java:1129)
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.connect(AbstractDelegateHttpsURLConnection.java:179)
+	at java.base/sun.net.www.protocol.https.HttpsURLConnectionImpl.connect(HttpsURLConnectionImpl.java:141)
+	at org.springframework.http.client.SimpleClientHttpRequest.executeInternal(SimpleClientHttpRequest.java:79)
+	at org.springframework.http.client.AbstractStreamingClientHttpRequest.executeInternal(AbstractStreamingClientHttpRequest.java:88)
+	at org.springframework.http.client.AbstractClientHttpRequest.execute(AbstractClientHttpRequest.java:81)
+	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:900)
+	... 11 more
 

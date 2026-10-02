@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "donatrack-incentivos": {
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\REEMPLAZAR\\RUTA\\AL\\PROYECTO\\Incentivos\\mcp-server\\src\\index.js"
+      ],
+      "env": {
+        "INCENTIVOS_API_URL": "http://localhost:8080"
+      }
+    }
+  }
+}

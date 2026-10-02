@@ -9,9 +9,11 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Appender de Logback que envía cada evento de log a la API de Logs de Datadog
@@ -31,10 +33,22 @@ public class DatadogHttpAppender extends AppenderBase<ILoggingEvent> {
   private String service;
   private String hostname;
   private ExecutorService executor;
+  private final AtomicBoolean failureReported = new AtomicBoolean();
+  private final AtomicBoolean acceptanceReported = new AtomicBoolean();
+  private final AtomicBoolean firstEventReported = new AtomicBoolean();
 
   @Override
   public void start() {
     apiKey = System.getenv("DD_API_KEY");
+    if (apiKey != null) {
+      apiKey = apiKey.trim();
+      if (apiKey.chars().anyMatch(ch -> ch < 0x20 || ch > 0x7e)) {
+        addWarn(
+            "DD_API_KEY contiene caracteres no válidos para un encabezado HTTP; "
+                + "volvé a ingresarla sin espacios ni saltos de línea.");
+        apiKey = null;
+      }
+    }
     site = System.getenv().getOrDefault("DD_SITE", "datadoghq.com");
     env = System.getenv().getOrDefault("DD_ENV", "local");
     service = System.getenv().getOrDefault("DD_SERVICE", "incentivos");
@@ -42,6 +56,8 @@ public class DatadogHttpAppender extends AppenderBase<ILoggingEvent> {
 
     if (apiKey == null || apiKey.isBlank()) {
       addInfo("DD_API_KEY no configurada: DatadogHttpAppender queda deshabilitado.");
+      System.err.println("[DatadogHttpAppender] Deshabilitado: DD_API_KEY no está configurada.");
+      super.start();
       return;
     }
 
@@ -52,6 +68,13 @@ public class DatadogHttpAppender extends AppenderBase<ILoggingEvent> {
               thread.setDaemon(true);
               return thread;
             });
+    System.err.println(
+        "[DatadogHttpAppender] Activo; enviando a "
+            + site
+            + " con service:"
+            + service
+            + " env:"
+            + env);
     super.start();
   }
 
@@ -60,7 +83,15 @@ public class DatadogHttpAppender extends AppenderBase<ILoggingEvent> {
     if (executor == null) {
       return;
     }
-    executor.execute(() -> send(event));
+    event.prepareForDeferredProcessing();
+    try {
+      executor.execute(() -> send(event));
+      if (firstEventReported.compareAndSet(false, true)) {
+        System.err.println("[DatadogHttpAppender] Primer evento de log encolado.");
+      }
+    } catch (java.util.concurrent.RejectedExecutionException e) {
+      reportFailure("No se pudo encolar el log para Datadog", e);
+    }
   }
 
   private void send(ILoggingEvent event) {
@@ -80,13 +111,52 @@ public class DatadogHttpAppender extends AppenderBase<ILoggingEvent> {
               .header("Content-Type", "application/json")
               .header("DD-API-KEY", apiKey)
               .timeout(Duration.ofSeconds(5))
-              .POST(HttpRequest.BodyPublishers.ofString(MAPPER.writeValueAsString(body)))
+              .POST(HttpRequest.BodyPublishers.ofString(MAPPER.writeValueAsString(List.of(body))))
               .build();
 
-      HTTP_CLIENT.sendAsync(request, HttpResponse.BodyHandlers.discarding());
+      HTTP_CLIENT
+          .sendAsync(request, HttpResponse.BodyHandlers.ofString())
+          .whenComplete(
+              (response, error) -> {
+                if (error != null) {
+                  reportFailure("Falló la conexión con Datadog", error);
+                } else if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                  reportFailure(
+                      "Datadog rechazó el log (HTTP "
+                          + response.statusCode()
+                          + "): "
+                          + summarizeResponse(response.body()),
+                      null);
+                } else if (acceptanceReported.compareAndSet(false, true)) {
+                  System.err.println(
+                      "[DatadogHttpAppender] Datadog aceptó logs (HTTP "
+                          + response.statusCode()
+                          + ") para service:"
+                          + service
+                          + " env:"
+                          + env);
+                }
+              });
     } catch (Exception e) {
-      addError("Error enviando log a Datadog", e);
+      reportFailure("No se pudo preparar el log para Datadog", e);
     }
+  }
+
+  private void reportFailure(String message, Throwable error) {
+    if (!failureReported.compareAndSet(false, true)) {
+      return;
+    }
+    String detail =
+        error == null ? message : message + " (" + error.getClass().getSimpleName() + ")";
+    System.err.println("[DatadogHttpAppender] " + detail);
+  }
+
+  private String summarizeResponse(String body) {
+    if (body == null || body.isBlank()) {
+      return "respuesta vacía";
+    }
+    String singleLine = body.replaceAll("[\\r\\n\\t]+", " ").trim();
+    return singleLine.substring(0, Math.min(singleLine.length(), 300));
   }
 
   @Override

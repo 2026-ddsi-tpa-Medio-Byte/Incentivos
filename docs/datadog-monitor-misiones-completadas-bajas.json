@@ -1,0 +1,13 @@
+{
+  "name": "Incentivos - sin misiones completadas",
+  "type": "query alert",
+  "query": "sum(last_1h):sum:incentivos.misiones.completadas{application:incentivos,env:prod}.as_count() < 1",
+  "message": "No se observan misiones completadas en Incentivos durante la última hora. Verificar actividad de donaciones, ejecución del scheduler y conectividad con los servicios relacionados. Ajustar o desactivar este monitor si no se esperan donaciones en ese horario.",
+  "tags": ["service:incentivos", "env:prod", "owner:incentivos", "business:mission-completion"],
+  "options": {
+    "thresholds": { "critical": 1 },
+    "notify_no_data": false,
+    "include_tags": true,
+    "require_full_window": false
+  }
+}
