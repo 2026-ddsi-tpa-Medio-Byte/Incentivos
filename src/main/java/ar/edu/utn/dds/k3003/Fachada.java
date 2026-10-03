@@ -18,6 +18,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import ar.edu.utn.dds.k3003.model.PerfilIncentivos;
 import ar.edu.utn.dds.k3003.repositories.PerfilIncentivosRepository;
 import ar.edu.utn.dds.k3003.repositories.InsigniaRepository;
@@ -387,7 +389,7 @@ public class Fachada implements FachadaIncentivos {
             }
 
             if (misionActual.categoriaFin() != null) {
-              fachadaDonadoresYEntidades.modifcarCategoria(donadorID, misionActual.categoriaFin().toString());
+              avisarCategoriaADonadores(donadorID, misionActual.categoriaFin());
               // Persistir la categoría en el perfil de incentivos del donador
               if (useJpa) {
                 var perfil = perfilJpaRepository.findById(donadorID).orElseGet(() -> new PerfilIncentivos(donadorID));
@@ -442,24 +444,45 @@ public class Fachada implements FachadaIncentivos {
       return;
     }
 
+    List<Mision> conInsigniaObtenida = misionesDonacionesExitosas.stream()
+        .filter(m -> perfil.getInsignias().stream().anyMatch(i -> m.getInsigniaID().equals(i.getId())))
+        .toList();
+    if (conInsigniaObtenida.isEmpty()) {
+      return;
+    }
+
+    // Solo se puede afirmar que el donador perdió progreso si Donaciones contestó y conoce sus
+    // donaciones. Antes, un Donaciones caído o con la base recién reseteada se contaba como
+    // "0 aceptadas" y se le quitaba la insignia a un donador que no había recibido ninguna queja.
+    List<DonacionDTO> donaciones;
+    try {
+      donaciones = fachadaDonaciones.buscarPorDonadorYFechaInicio(donadorID, null);
+    } catch (RuntimeException e) {
+      log.warn("No se revisa la pérdida de progreso del donador {}: Donaciones no respondió ({})",
+          donadorID, e.getMessage());
+      return;
+    }
+    if (donaciones == null || donaciones.isEmpty()) {
+      log.warn("No se revisa la pérdida de progreso del donador {}: Donaciones no tiene donaciones suyas",
+          donadorID);
+      return;
+    }
+    long aceptadas = donaciones.stream()
+        .filter(d -> EstadoDonacionEnum.ACEPTADA.equals(d.estado()))
+        .count();
+    if (aceptadas >= 20) {
+      return;
+    }
+
     boolean huboRegresion = false;
-    for (Mision mision : misionesDonacionesExitosas) {
-      boolean tieneInsignia = perfil.getInsignias().stream()
-          .anyMatch(i -> mision.getInsigniaID().equals(i.getId()));
-      if (!tieneInsignia) {
-        continue;
-      }
-
-      long aceptadas = misionEvaluatorService.contarDonacionesAceptadas(donadorID);
-      if (aceptadas >= 20) {
-        continue;
-      }
-
+    for (Mision mision : conInsigniaObtenida) {
+      log.info("El donador {} bajó a {} donaciones ACEPTADA: pierde la insignia de la misión {}",
+          donadorID, aceptadas, mision.getId());
       // orphanRemoval=true en PerfilIncentivos.insignias: sacarla de la lista la borra
       // de la tabla insignias, no solo desvincula al donador.
       perfil.getInsignias().removeIf(i -> mision.getInsigniaID().equals(i.getId()));
       if (mision.getCategoriaInicio() != null) {
-        fachadaDonadoresYEntidades.modifcarCategoria(donadorID, mision.getCategoriaInicio().toString());
+        avisarCategoriaADonadores(donadorID, mision.getCategoriaInicio());
         perfil.agregarCategoria(mision.getCategoriaInicio());
       }
       perfil.setMisionActualID(mision.getId());
@@ -471,6 +494,37 @@ public class Fachada implements FachadaIncentivos {
       if (incentivosMetrics != null) {
         incentivosMetrics.recordPerdidaDeProgreso();
       }
+    }
+  }
+
+  /**
+   * Informa a Donadores y Entidades la nueva categoría del donador recién cuando Incentivos
+   * confirmó su propia transacción.
+   *
+   * <p>El PATCH es una llamada HTTP: si se hacía en el medio del procesamiento y algo fallaba
+   * después (por ejemplo Donaciones sin responder), Incentivos revertía sus cambios pero el de
+   * Donadores ya estaba hecho, y los dos módulos quedaban con categorías distintas. Fuera de una
+   * transacción (repositorios en memoria de los tests de cátedra) se envía en el momento.
+   */
+  private void avisarCategoriaADonadores(String donadorID, CategoriaDonadorEnum categoria) {
+    Runnable aviso = () -> {
+      try {
+        fachadaDonadoresYEntidades.modifcarCategoria(donadorID, categoria.toString());
+      } catch (RuntimeException e) {
+        // Incentivos ya confirmó: se informa para reconciliar, sin hacer fallar el procesamiento.
+        log.error("Incentivos registró la categoría {} del donador {} pero Donadores y Entidades no la"
+            + " aceptó ({}): quedaron desincronizados", categoria, donadorID, e.getMessage());
+      }
+    };
+    if (TransactionSynchronizationManager.isSynchronizationActive()) {
+      TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+        @Override
+        public void afterCommit() {
+          aviso.run();
+        }
+      });
+    } else {
+      aviso.run();
     }
   }
 

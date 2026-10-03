@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.transaction.TestTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -127,6 +128,9 @@ class MisionesCicloDeVidaTest {
     Assertions.assertTrue(
         perfil.getCategorias().contains(CategoriaDonadorEnum.TRANSFORMADOR),
         "Debería haber avanzado a la categoriaFin de la misión");
+    // El aviso a Donadores sale recién al confirmar la transacción.
+    verify(fachadaDonadoresYEntidades, never()).modifcarCategoria(any(), any());
+    confirmarTransaccion();
     verify(fachadaDonadoresYEntidades).modifcarCategoria(donadorID, "TRANSFORMADOR");
   }
 
@@ -171,7 +175,91 @@ class MisionesCicloDeVidaTest {
         mision.getId(),
         actualizado.getMisionActualID(),
         "La misión debería volver a quedar en curso para que la recumpla");
+    confirmarTransaccion();
     verify(fachadaDonadoresYEntidades).modifcarCategoria(donadorID, "COLABORADOR");
+  }
+
+  /** Perfil que ya cumplió una misión DONACIONES_EXITOSAS y tiene su insignia. */
+  private Insignia perfilConInsigniaDeDonacionesExitosas(String donadorID, String sufijo) {
+    Insignia insignia =
+        insigniaRepository.save(new Insignia("insignia-" + sufijo, "20 Donaciones", "desc"));
+    misionRepository.save(
+        new Mision(
+            "mision-" + sufijo,
+            "Donaciones Exitosas",
+            insignia.getId(),
+            CategoriaDonadorEnum.COLABORADOR,
+            CategoriaDonadorEnum.TRANSFORMADOR,
+            TipoMisionEnum.DONACIONES_EXITOSAS));
+    PerfilIncentivos perfil = new PerfilIncentivos(donadorID);
+    perfil.agregarInsignia(insignia);
+    perfil.agregarCategoria(CategoriaDonadorEnum.TRANSFORMADOR);
+    perfil.setMisionActualID("mision-" + sufijo);
+    perfilRepository.save(perfil);
+    return insignia;
+  }
+
+  private void assertConservaInsignia(String donadorID, Insignia insignia) {
+    PerfilIncentivos perfil = perfilRepository.findById(donadorID).orElseThrow();
+    Assertions.assertTrue(
+        perfil.getInsignias().stream().anyMatch(i -> i.getId().equals(insignia.getId())),
+        "Sin datos confiables de Donaciones no se puede afirmar que perdió progreso");
+  }
+
+  @Test
+  void noRetiraLaInsigniaSiDonacionesNoResponde() {
+    String donadorID = "donador-ciclo-caido";
+    Insignia insignia = perfilConInsigniaDeDonacionesExitosas(donadorID, "ciclo-caido");
+    when(fachadaDonaciones.buscarPorDonadorYFechaInicio(eq(donadorID), any()))
+        .thenThrow(new java.util.NoSuchElementException("Donaciones no disponible"));
+
+    Assertions.assertThrows(
+        java.util.NoSuchElementException.class, () -> fachada.procesarDonador(donadorID));
+
+    assertConservaInsignia(donadorID, insignia);
+    verify(fachadaDonadoresYEntidades, never()).modifcarCategoria(any(), any());
+  }
+
+  @Test
+  void noRetiraLaInsigniaSiDonacionesNoTieneDonacionesDelDonador() {
+    // Es lo que pasa cuando se resetea la base de Donaciones y la de Incentivos no.
+    String donadorID = "donador-ciclo-reset";
+    Insignia insignia = perfilConInsigniaDeDonacionesExitosas(donadorID, "ciclo-reset");
+    when(fachadaDonaciones.buscarPorDonadorYFechaInicio(eq(donadorID), any()))
+        .thenReturn(List.of());
+
+    Assertions.assertThrows(
+        java.util.NoSuchElementException.class, () -> fachada.procesarDonador(donadorID));
+
+    assertConservaInsignia(donadorID, insignia);
+    verify(fachadaDonadoresYEntidades, never()).modifcarCategoria(any(), any());
+  }
+
+  @Test
+  void noAvisaADonadoresSiElProcesamientoFallaDespuesDeLaPerdida() {
+    // Primera consulta: 15 ACEPTADA (pierde progreso). Segunda: Donaciones deja de responder.
+    String donadorID = "donador-ciclo-a-medias";
+    perfilConInsigniaDeDonacionesExitosas(donadorID, "ciclo-a-medias");
+    List<DonacionDTO> quinceDonaciones = new ArrayList<>();
+    for (int i = 0; i < 15; i++) {
+      quinceDonaciones.add(donacionAceptada(donadorID, "prod-" + i));
+    }
+    when(fachadaDonaciones.buscarPorDonadorYFechaInicio(eq(donadorID), any()))
+        .thenReturn(quinceDonaciones)
+        .thenThrow(new java.util.NoSuchElementException("Donaciones no disponible"));
+
+    Assertions.assertThrows(
+        java.util.NoSuchElementException.class, () -> fachada.procesarDonador(donadorID));
+
+    // La transacción quedó marcada para rollback: el aviso a Donadores nunca se envía.
+    TestTransaction.end();
+    verify(fachadaDonadoresYEntidades, never()).modifcarCategoria(any(), any());
+  }
+
+  /** Confirma la transacción del test para que corran los avisos registrados para después del commit. */
+  private void confirmarTransaccion() {
+    TestTransaction.flagForCommit();
+    TestTransaction.end();
   }
 
   @Test
