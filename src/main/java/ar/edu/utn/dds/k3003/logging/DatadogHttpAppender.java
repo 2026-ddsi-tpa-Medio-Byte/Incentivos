@@ -1,6 +1,8 @@
 package ar.edu.utn.dds.k3003.logging;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.IThrowableProxy;
+import ch.qos.logback.classic.spi.ThrowableProxyUtil;
 import ch.qos.logback.core.AppenderBase;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
@@ -94,16 +96,46 @@ public class DatadogHttpAppender extends AppenderBase<ILoggingEvent> {
     }
   }
 
+  /**
+   * Arma el evento en el formato de la API de logs de Datadog.
+   *
+   * <p>Además de los datos del servicio, agrega lo que haya en el MDC ({@code traceId},
+   * {@code requestId}) como atributos de primer nivel, para buscar con {@code @traceId:...} igual
+   * que en los otros módulos, y la excepción en los atributos estándar {@code error.*} de Datadog:
+   * antes solo viajaba el mensaje y el stack trace se perdía.
+   */
+  static Map<String, Object> armarEvento(
+      ILoggingEvent event, String env, String hostname, String service) {
+    Map<String, Object> body = new LinkedHashMap<>();
+    body.put("ddsource", "java");
+    body.put("ddtags", "env:" + env);
+    body.put("hostname", hostname);
+    body.put("service", service);
+    body.put("status", event.getLevel().toString());
+    body.put("logger", event.getLoggerName());
+    body.put("message", event.getFormattedMessage());
+    Map<String, String> mdc = event.getMDCPropertyMap();
+    if (mdc != null) {
+      mdc.forEach((clave, valor) -> {
+        if (valor != null && !valor.isBlank()) {
+          body.put(clave, valor);
+        }
+      });
+    }
+    IThrowableProxy error = event.getThrowableProxy();
+    if (error != null) {
+      Map<String, Object> detalle = new LinkedHashMap<>();
+      detalle.put("kind", error.getClassName());
+      detalle.put("message", error.getMessage());
+      detalle.put("stack", ThrowableProxyUtil.asString(error));
+      body.put("error", detalle);
+    }
+    return body;
+  }
+
   private void send(ILoggingEvent event) {
     try {
-      Map<String, Object> body = new LinkedHashMap<>();
-      body.put("ddsource", "java");
-      body.put("ddtags", "env:" + env);
-      body.put("hostname", hostname);
-      body.put("service", service);
-      body.put("status", event.getLevel().toString());
-      body.put("logger", event.getLoggerName());
-      body.put("message", event.getFormattedMessage());
+      Map<String, Object> body = armarEvento(event, env, hostname, service);
 
       HttpRequest request =
           HttpRequest.newBuilder()
