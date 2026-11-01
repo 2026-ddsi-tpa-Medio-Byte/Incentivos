@@ -28,6 +28,11 @@ C:\Users\Wency\Desktop\UTN\Diseño de sistemas - 2026\Incentivos\src\main\java\a
 C:\Users\Wency\Desktop\UTN\Diseño de sistemas - 2026\Incentivos\src\main\java\ar\edu\utn\dds\k3003\dtos\logistica\EstadoAsginacionEnum.java
 C:\Users\Wency\Desktop\UTN\Diseño de sistemas - 2026\Incentivos\src\main\java\ar\edu\utn\dds\k3003\dtos\logistica\PaqueteDTO.java
 C:\Users\Wency\Desktop\UTN\Diseño de sistemas - 2026\Incentivos\src\main\java\ar\edu\utn\dds\k3003\dtos\logistica\TipoAlgoritmoEnum.java
+C:\Users\Wency\Desktop\UTN\Diseño de sistemas - 2026\Incentivos\src\main\java\ar\edu\utn\dds\k3003\eventos\EventoIncentivos.java
+C:\Users\Wency\Desktop\UTN\Diseño de sistemas - 2026\Incentivos\src\main\java\ar\edu\utn\dds\k3003\eventos\EventosConfig.java
+C:\Users\Wency\Desktop\UTN\Diseño de sistemas - 2026\Incentivos\src\main\java\ar\edu\utn\dds\k3003\eventos\EventosIncentivos.java
+C:\Users\Wency\Desktop\UTN\Diseño de sistemas - 2026\Incentivos\src\main\java\ar\edu\utn\dds\k3003\eventos\PublicadorEventos.java
+C:\Users\Wency\Desktop\UTN\Diseño de sistemas - 2026\Incentivos\src\main\java\ar\edu\utn\dds\k3003\eventos\RepublicadorEventos.java
 C:\Users\Wency\Desktop\UTN\Diseño de sistemas - 2026\Incentivos\src\main\java\ar\edu\utn\dds\k3003\exceptions\DonadorNoEncontradoException.java
 C:\Users\Wency\Desktop\UTN\Diseño de sistemas - 2026\Incentivos\src\main\java\ar\edu\utn\dds\k3003\exceptions\DonadorYaExistenteException.java
 C:\Users\Wency\Desktop\UTN\Diseño de sistemas - 2026\Incentivos\src\main\java\ar\edu\utn\dds\k3003\Fachada.java
@@ -40,6 +45,9 @@ C:\Users\Wency\Desktop\UTN\Diseño de sistemas - 2026\Incentivos\src\main\java\a
 C:\Users\Wency\Desktop\UTN\Diseño de sistemas - 2026\Incentivos\src\main\java\ar\edu\utn\dds\k3003\fachadas\FachadaLogistica.java
 C:\Users\Wency\Desktop\UTN\Diseño de sistemas - 2026\Incentivos\src\main\java\ar\edu\utn\dds\k3003\fachadas\FachadaLogisticaImpl.java
 C:\Users\Wency\Desktop\UTN\Diseño de sistemas - 2026\Incentivos\src\main\java\ar\edu\utn\dds\k3003\logging\DatadogHttpAppender.java
+C:\Users\Wency\Desktop\UTN\Diseño de sistemas - 2026\Incentivos\src\main\java\ar\edu\utn\dds\k3003\logging\Trazabilidad.java
+C:\Users\Wency\Desktop\UTN\Diseño de sistemas - 2026\Incentivos\src\main\java\ar\edu\utn\dds\k3003\logging\TrazabilidadFilter.java
+C:\Users\Wency\Desktop\UTN\Diseño de sistemas - 2026\Incentivos\src\main\java\ar\edu\utn\dds\k3003\logging\TrazabilidadInterceptor.java
 C:\Users\Wency\Desktop\UTN\Diseño de sistemas - 2026\Incentivos\src\main\java\ar\edu\utn\dds\k3003\metrics\IncentivosMetrics.java
 C:\Users\Wency\Desktop\UTN\Diseño de sistemas - 2026\Incentivos\src\main\java\ar\edu\utn\dds\k3003\model\Donador.java
 C:\Users\Wency\Desktop\UTN\Diseño de sistemas - 2026\Incentivos\src\main\java\ar\edu\utn\dds\k3003\model\Insignia.java

@@ -1,0 +1,14 @@
+{
+  "name": "Incentivos - Cron-Job detenido o servicio caído",
+  "type": "query alert",
+  "query": "sum(last_10m):sum:incentivos.donador.procesamientos{application:incentivos,env:prod}.as_count() < 1",
+  "message": "Incentivos no procesó ningún donador en los últimos 10 minutos. El Cron-Job corre cada 60 segundos, así que el scheduler se detuvo, no hay donadores con misión asignada o el servicio está caído (si dejó de llegar la métrica). Revisar /actuator/health y los logs de Incentivos.",
+  "tags": ["service:incentivos", "env:prod", "owner:incentivos", "tipo:disponibilidad"],
+  "options": {
+    "thresholds": { "critical": 1 },
+    "notify_no_data": true,
+    "no_data_timeframe": 15,
+    "include_tags": true,
+    "require_full_window": false
+  }
+}

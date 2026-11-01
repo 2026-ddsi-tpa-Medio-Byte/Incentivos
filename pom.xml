@@ -45,6 +45,11 @@
       <groupId>io.micrometer</groupId>
       <artifactId>micrometer-registry-datadog</artifactId>
     </dependency>
+    <!-- Entrega 6: publicación de eventos en RabbitMQ para el modelo de lectura (CQRS) -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-amqp</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-devtools</artifactId>

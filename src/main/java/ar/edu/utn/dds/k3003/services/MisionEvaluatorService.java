@@ -30,6 +30,58 @@ public class MisionEvaluatorService {
   }
 
   /**
+   * Cuánto necesita un donador para completar una misión de ese tipo: el "objetivo" que se publica
+   * para el modelo de lectura ("misión en curso: 14 de 20"). Son los mismos umbrales que usa
+   * {@link #evaluarMision}.
+   */
+  public static int objetivo(TipoMisionEnum tipoMision) {
+    return switch (tipoMision) {
+      case COMPLETITUD -> 3;               // productos distintos donados
+      case DONACIONES_EXITOSAS -> 20;      // donaciones ACEPTADA
+      case DONACIONES_ASCENDENTES -> 5;    // últimas donaciones en cantidad creciente
+      case REVOLUCION_DONADORA -> 10;      // donaciones de más de 50 unidades
+    };
+  }
+
+  /**
+   * Cuánto lleva un donador en una misión, con las mismas reglas que {@link #evaluarMision}: la
+   * misión se cumple exactamente cuando {@code progreso >= objetivo}.
+   *
+   * <p>En DONACIONES_ASCENDENTES el progreso es el largo de la racha de cantidades estrictamente
+   * crecientes que termina en la última donación (hasta 5): con 1, 2, 3 lleva 3 de 5; si la
+   * siguiente es menor, la racha vuelve a 1.
+   */
+  public static long progreso(TipoMisionEnum tipoMision, List<DonacionDTO> donaciones) {
+    if (donaciones == null || donaciones.isEmpty()) {
+      return 0;
+    }
+    return switch (tipoMision) {
+      case COMPLETITUD -> donaciones.stream().map(DonacionDTO::productoID).distinct().count();
+      case DONACIONES_EXITOSAS -> donaciones.stream()
+          .filter(d -> EstadoDonacionEnum.ACEPTADA.equals(d.estado())).count();
+      case DONACIONES_ASCENDENTES -> rachaAscendenteFinal(donaciones);
+      case REVOLUCION_DONADORA -> donaciones.stream()
+          .filter(d -> d.cantidad() != null && d.cantidad() > 50).count();
+    };
+  }
+
+  private static long rachaAscendenteFinal(List<DonacionDTO> donaciones) {
+    int ultima = donaciones.size() - 1;
+    if (donaciones.get(ultima).cantidad() == null) {
+      return 0;
+    }
+    int racha = 1;
+    for (int i = ultima; i > 0 && racha < objetivo(TipoMisionEnum.DONACIONES_ASCENDENTES); i--) {
+      Integer anterior = donaciones.get(i - 1).cantidad();
+      if (anterior == null || anterior >= donaciones.get(i).cantidad()) {
+        break;
+      }
+      racha++;
+    }
+    return racha;
+  }
+
+  /**
    * Verifica si un donador cumple con los requisitos de una misión específica.
    */
   public boolean evaluarMision(String donadorID, TipoMisionEnum tipoMision) {

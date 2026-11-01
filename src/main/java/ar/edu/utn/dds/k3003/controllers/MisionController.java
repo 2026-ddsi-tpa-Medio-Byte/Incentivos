@@ -1,5 +1,6 @@
 package ar.edu.utn.dds.k3003.controllers;
 
+import ar.edu.utn.dds.k3003.eventos.EventosIncentivos;
 import ar.edu.utn.dds.k3003.model.Mision;
 import ar.edu.utn.dds.k3003.repositories.MisionRepository;
 import java.util.List;
@@ -16,9 +17,11 @@ public class MisionController {
 
     private static final Logger log = LoggerFactory.getLogger(MisionController.class);
     private final MisionRepository misionRepository;
+    private final EventosIncentivos eventos;
 
-    public MisionController(MisionRepository misionRepository) {
+    public MisionController(MisionRepository misionRepository, EventosIncentivos eventos) {
         this.misionRepository = misionRepository;
+        this.eventos = eventos;
     }
 
     @GetMapping
@@ -45,6 +48,7 @@ public class MisionController {
     public ResponseEntity<Mision> crear(@RequestBody Mision mision) {
         log.info("POST /api/misiones - creando misión id={}, nombre={}", mision != null ? mision.getId() : null, mision != null ? mision.getNombre() : null);
         Mision saved = misionRepository.save(mision);
+        eventos.misionCreada(saved);
         log.info("Misión creada correctamente id={}", saved.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
@@ -66,6 +70,7 @@ public class MisionController {
         if (misionActualizada.getTipo() != null) mision.setTipo(misionActualizada.getTipo());
 
         Mision updated = misionRepository.save(mision);
+        eventos.misionModificada(updated);
         log.info("Misión actualizada correctamente id={}", updated.getId());
         return ResponseEntity.ok(updated);
     }
@@ -78,6 +83,7 @@ public class MisionController {
             return ResponseEntity.notFound().build();
         }
         misionRepository.deleteById(id);
+        eventos.misionEliminada(id);
         log.info("Misión eliminada correctamente id={}", id);
         return ResponseEntity.noContent().build();
     }

@@ -6,6 +6,7 @@ import ar.edu.utn.dds.k3003.dtos.incentivos.CategoriaDonadorEnum;
 import ar.edu.utn.dds.k3003.dtos.incentivos.InsigniaDTO;
 import ar.edu.utn.dds.k3003.dtos.incentivos.MisionDTO;
 import ar.edu.utn.dds.k3003.dtos.incentivos.TipoMisionEnum;
+import ar.edu.utn.dds.k3003.eventos.EventosIncentivos;
 import ar.edu.utn.dds.k3003.fachadas.FachadaDonaciones;
 import ar.edu.utn.dds.k3003.fachadas.FachadaDonadoresYEntidades;
 import ar.edu.utn.dds.k3003.fachadas.FachadaIncentivos;
@@ -50,6 +51,8 @@ public class Fachada implements FachadaIncentivos {
   private FachadaDonaciones fachadaDonaciones;
   private MisionEvaluatorService misionEvaluatorService;
   private IncentivosMetrics incentivosMetrics;
+  // Eventos para el modelo de lectura (Entrega 6). Null en el modo en memoria de los tests de cátedra.
+  private EventosIncentivos eventos;
 
   public void setFachadaDonaciones(FachadaDonaciones fachadaDonaciones) {
     this.fachadaDonaciones = fachadaDonaciones;
@@ -130,7 +133,7 @@ public class Fachada implements FachadaIncentivos {
 
   // Constructor for Spring to inject JPA repositories (will set useJpa=true)
   @Autowired
-  public Fachada(PerfilIncentivosRepository perfilJpaRepository, InsigniaRepository insigniaJpaRepository, MisionRepository misionJpaRepository, FachadaDonaciones fachadaDonaciones, FachadaDonadoresYEntidades fachadaDonadoresYEntidades, MisionEvaluatorService misionEvaluatorService, IncentivosMetrics incentivosMetrics) {
+  public Fachada(PerfilIncentivosRepository perfilJpaRepository, InsigniaRepository insigniaJpaRepository, MisionRepository misionJpaRepository, FachadaDonaciones fachadaDonaciones, FachadaDonadoresYEntidades fachadaDonadoresYEntidades, MisionEvaluatorService misionEvaluatorService, IncentivosMetrics incentivosMetrics, EventosIncentivos eventos) {
     this(); // initialize fallbacks
     this.perfilJpaRepository = perfilJpaRepository;
     this.insigniaJpaRepository = insigniaJpaRepository;
@@ -139,6 +142,7 @@ public class Fachada implements FachadaIncentivos {
     this.fachadaDonadoresYEntidades = fachadaDonadoresYEntidades;
     this.misionEvaluatorService = misionEvaluatorService;
     this.incentivosMetrics = incentivosMetrics;
+    this.eventos = eventos;
     this.useJpa = true;
   }
   public Insignia eliminarInsignia(Insignia insignia){
@@ -158,6 +162,9 @@ public class Fachada implements FachadaIncentivos {
     } else {
       agregada = repoInsignias.agregarInsignia(entidad);
     }
+    if (eventos != null) {
+      eventos.insigniaCreada(agregada);
+    }
     log.info("Insignia creada correctamente: id={}", agregada.getId());
     return new InsigniaDTO(agregada.getId(), agregada.getNombre(), agregada.getDescripcion());
   }
@@ -171,6 +178,9 @@ public class Fachada implements FachadaIncentivos {
       agregada = misionJpaRepository.save(entidad);
     } else {
       agregada = repoMisiones.agregarMision(entidad);
+    }
+    if (eventos != null) {
+      eventos.misionCreada(agregada);
     }
     log.info("Misión creada correctamente: id={}", agregada.getId());
     return new MisionDTO(agregada.getId(), agregada.getNombre(), agregada.getInsigniaID(), agregada.getCategoriaInicio(), agregada.getCategoriaFin(), agregada.getTipo());
@@ -315,6 +325,12 @@ public class Fachada implements FachadaIncentivos {
       Mision mision = misionOpt.orElseGet(() -> misionJpaRepository.save(new Mision(misionDTO.id(), misionDTO.nombre(), misionDTO.insigniaID(), misionDTO.categoriaInicio(), misionDTO.categoriaFin(), misionDTO.tipo())));
       perfil.setMisionActualID(mision.getId());
       perfilJpaRepository.save(perfil);
+      if (eventos != null) {
+        if (misionOpt.isEmpty()) {
+          eventos.misionCreada(mision); // la misión no existía: se dio de alta al asignarla
+        }
+        eventos.progresoActualizado(donadorID, null);
+      }
       log.info("Misión {} asignada correctamente al donador {}", mision.getId(), donadorID);
       return;
     }
@@ -325,8 +341,20 @@ public class Fachada implements FachadaIncentivos {
     log.info("Misión {} asignada correctamente al donador {}", misionDTO.id(), donadorID);
   }
 
+  /** Otorgamiento manual (POST /donadores/{id}/insignias): cambia al donador, así que publica su progreso. */
   @Override
   public void asignarInsigniaADonador(String donadorID, InsigniaDTO insigniaDTO) throws NoSuchElementException {
+    otorgarInsignia(donadorID, insigniaDTO);
+    if (useJpa && eventos != null) {
+      eventos.progresoActualizado(donadorID, null);
+    }
+  }
+
+  /**
+   * Agrega la insignia al perfil sin publicar el progreso: lo usa procesarDonador, que publica un
+   * único evento al final con el estado completo.
+   */
+  private void otorgarInsignia(String donadorID, InsigniaDTO insigniaDTO) {
     log.info("Asignando insignia {} al donador {}", insigniaDTO != null ? insigniaDTO.id() : null, donadorID);
     if (insigniaDTO == null) {
       log.error("Se intentó asignar una insignia nula al donador {}", donadorID);
@@ -337,6 +365,9 @@ public class Fachada implements FachadaIncentivos {
       // ensure insignia exists
       var insigniaOpt = insigniaJpaRepository.findById(insigniaDTO.id());
       Insignia insignia = insigniaOpt.orElseGet(() -> insigniaJpaRepository.save(new Insignia(insigniaDTO.id(), insigniaDTO.nombre(), insigniaDTO.descripcion())));
+      if (insigniaOpt.isEmpty() && eventos != null) {
+        eventos.insigniaCreada(insignia); // la insignia no existía: se dio de alta al otorgarla
+      }
       // add to perfil de incentivos del donador
       var perfil = perfilJpaRepository.findById(donadorID).orElseGet(() -> new PerfilIncentivos(donadorID));
       if (perfil.getInsignias() == null) perfil.setInsignias(new java.util.ArrayList<>());
@@ -367,7 +398,8 @@ public class Fachada implements FachadaIncentivos {
     try {
       fachadaDonadoresYEntidades.buscarDonadorPorID(donadorID);
       revisarPerdidaDeProgreso(donadorID);
-      DonacionDTO donacionAProcesar = fachadaDonaciones.buscarPorDonadorYFechaInicio(donadorID, null).getFirst();
+      List<DonacionDTO> donaciones = fachadaDonaciones.buscarPorDonadorYFechaInicio(donadorID, null);
+      DonacionDTO donacionAProcesar = donaciones.getFirst();
       log.info("Última donación del donador {}: estado={}", donadorID, donacionAProcesar.estado());
       if (donacionAProcesar.estado().equals(EstadoDonacionEnum.ACEPTADA)) { // Donacion OK
         MisionDTO misionActual = this.getMisionEnCursoDeDonador(donadorID);
@@ -384,7 +416,7 @@ public class Fachada implements FachadaIncentivos {
                   : this.repoInsignias.getInsignias().stream().filter(i -> i.getId().equals(misionActual.insigniaID())).findFirst().orElse(null);
               if (insigniaDeMision != null) {
                 InsigniaDTO insigniaDTO = new InsigniaDTO(insigniaDeMision.getId(), insigniaDeMision.getNombre(), insigniaDeMision.getDescripcion());
-                this.asignarInsigniaADonador(donadorID, insigniaDTO);
+                this.otorgarInsignia(donadorID, insigniaDTO);
               }
             }
 
@@ -410,6 +442,11 @@ public class Fachada implements FachadaIncentivos {
         }
       } else {
         resultado = "donacion_no_aceptada";
+      }
+      // Un solo evento con el estado final del donador, gane o pierda una insignia o solo cambie su
+      // progreso. Sale recién con el commit: si el procesamiento falla, no se anuncia nada.
+      if (useJpa && eventos != null) {
+        eventos.progresoActualizado(donadorID, donaciones);
       }
     } finally {
       if (incentivosMetrics != null) {

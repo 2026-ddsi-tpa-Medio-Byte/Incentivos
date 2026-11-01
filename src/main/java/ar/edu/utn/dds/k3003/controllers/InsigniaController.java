@@ -1,5 +1,6 @@
 package ar.edu.utn.dds.k3003.controllers;
 
+import ar.edu.utn.dds.k3003.eventos.EventosIncentivos;
 import ar.edu.utn.dds.k3003.model.Insignia;
 import ar.edu.utn.dds.k3003.repositories.InsigniaRepository;
 import org.springframework.http.HttpStatus;
@@ -14,9 +15,11 @@ import java.util.Optional;
 public class InsigniaController {
 
     private final InsigniaRepository insigniaRepository;
+    private final EventosIncentivos eventos;
 
-    public InsigniaController(InsigniaRepository insigniaRepository) {
+    public InsigniaController(InsigniaRepository insigniaRepository, EventosIncentivos eventos) {
         this.insigniaRepository = insigniaRepository;
+        this.eventos = eventos;
     }
 
     @GetMapping
@@ -34,6 +37,7 @@ public class InsigniaController {
     @PostMapping
     public ResponseEntity<Insignia> crear(@RequestBody Insignia insignia) {
         Insignia saved = insigniaRepository.save(insignia);
+        eventos.insigniaCreada(saved);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
@@ -49,6 +53,7 @@ public class InsigniaController {
         if (insigniaActualizada.getDescripcion() != null) insignia.setDescripcion(insigniaActualizada.getDescripcion());
 
         Insignia updated = insigniaRepository.save(insignia);
+        eventos.insigniaModificada(updated);
         return ResponseEntity.ok(updated);
     }
 
@@ -58,6 +63,7 @@ public class InsigniaController {
             return ResponseEntity.notFound().build();
         }
         insigniaRepository.deleteById(id);
+        eventos.insigniaEliminada(id);
         return ResponseEntity.noContent().build();
     }
 

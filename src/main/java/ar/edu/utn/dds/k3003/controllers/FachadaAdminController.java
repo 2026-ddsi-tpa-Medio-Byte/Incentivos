@@ -1,5 +1,7 @@
 package ar.edu.utn.dds.k3003.controllers;
 
+import ar.edu.utn.dds.k3003.eventos.EventosIncentivos;
+import ar.edu.utn.dds.k3003.eventos.RepublicadorEventos;
 import ar.edu.utn.dds.k3003.model.Insignia;
 import ar.edu.utn.dds.k3003.model.Mision;
 import ar.edu.utn.dds.k3003.model.PerfilIncentivos;
@@ -20,13 +22,18 @@ public class FachadaAdminController {
     private final InsigniaRepository insigniaRepo;
     private final MisionRepository misionRepo;
     private final ProcesamientoMisionesScheduler misionesScheduler;
+    private final EventosIncentivos eventos;
+    private final RepublicadorEventos republicador;
 
     public FachadaAdminController(PerfilIncentivosRepository perfilRepo, InsigniaRepository insigniaRepo,
-            MisionRepository misionRepo, ProcesamientoMisionesScheduler misionesScheduler) {
+            MisionRepository misionRepo, ProcesamientoMisionesScheduler misionesScheduler,
+            EventosIncentivos eventos, RepublicadorEventos republicador) {
         this.perfilRepo = perfilRepo;
         this.insigniaRepo = insigniaRepo;
         this.misionRepo = misionRepo;
         this.misionesScheduler = misionesScheduler;
+        this.eventos = eventos;
+        this.republicador = republicador;
     }
 
     @GetMapping("/insignias")
@@ -50,7 +57,18 @@ public class FachadaAdminController {
         insigniaRepo.deleteAll();
         misionRepo.deleteAll();
         perfilRepo.deleteAll();
+        // Consultas borra de Mongo todo lo de Incentivos anterior a este evento.
+        eventos.moduloReseteado();
         return ResponseEntity.ok("database.cleared");
+    }
+
+    /**
+     * Vuelve a publicar el estado actual de todo Incentivos (carga inicial del modelo de lectura y
+     * resincronización). Devuelve cuántos objetos de cada tipo se republicaron.
+     */
+    @PostMapping("/republicar-eventos")
+    public ResponseEntity<java.util.Map<String, Integer>> republicarEventos() {
+        return ResponseEntity.ok(republicador.republicarTodo());
     }
 
     /**
