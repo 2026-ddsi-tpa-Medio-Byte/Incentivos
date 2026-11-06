@@ -32,7 +32,7 @@ public class DonadoresYEntidadesTest {
   void setUp() {
     FachadaDonadoresYEntidadesImpl fachada = new FachadaDonadoresYEntidadesImpl(new RestTemplate());
     ReflectionTestUtils.setField(
-        fachada, "donadoresYEntidadesBaseUrl", "https://donadoresyentidadesv2.onrender.com");
+        fachada, "donadoresYEntidadesBaseUrl", "https://donadoresyentidadesv2-msg7.onrender.com");
     fachadaDonadoresYEntidades = fachada;
   }
 
