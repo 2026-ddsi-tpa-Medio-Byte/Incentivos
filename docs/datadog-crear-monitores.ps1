@@ -10,15 +10,16 @@
     DD_SITE      sitio de Datadog, por ejemplo us5.datadoghq.com (por defecto datadoghq.com)
 
 .PARAMETER Notificar
-  Destinatarios que se agregan al mensaje de cada monitor, por ejemplo "@taraujo@frba.utn.edu.ar".
-  Sin destinatarios el monitor alerta en Datadog pero no avisa a nadie.
+  Destinatarios EXTRA que se agregan al mensaje de cada monitor, por ejemplo "@otro@mail.com".
+  Los JSON ya incluyen @taraujo@frba.utn.edu.ar, asi que no hace falta pasarlo de nuevo.
+  Un @mail en el mensaje hace que Datadog mande la alerta por mail a esa direccion.
 
 .PARAMETER SoloValidar
   Valida cada definición contra la API sin crear ni modificar nada.
 
 .EXAMPLE
   $env:DD_API_KEY = "..."; $env:DD_APP_KEY = "..."; $env:DD_SITE = "us5.datadoghq.com"
-  .\docs\datadog-crear-monitores.ps1 -Notificar "@taraujo@frba.utn.edu.ar"
+  .\docs\datadog-crear-monitores.ps1
 #>
 param(
   [string]$Notificar = "",

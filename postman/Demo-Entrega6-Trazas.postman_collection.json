@@ -1,0 +1,2464 @@
+{
+  "info": {
+    "name": "DonaTrack - Demo Entrega 6 (flujos trazados y alarmas, vía API Gateway)",
+    "description": "Recorre los 6 flujos del core business, el modelo de lectura (CQRS) y dispara las alarmas, todo a través del API Gateway. Cada flujo lleva un X-Trace-Id propio (demo-<corrida>-fN-...) para seguirlo en Datadog Logs con @traceId. Correr con el Runner en orden. Ver docs/demo-entrega6-trazas-y-alarmas.md.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "gw",
+      "value": "https://apigateway-86p9.onrender.com"
+    },
+    {
+      "key": "ddSite",
+      "value": "us5.datadoghq.com"
+    }
+  ],
+  "item": [
+    {
+      "name": "00 · Despertar servicios y precondiciones (traza: precondiciones)",
+      "item": [
+        {
+          "name": "00 GET gateway /actuator/health (arranca la corrida)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_setup}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/actuator/health",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "actuator",
+                "health"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] GET /actuator/health -> ' + pm.response.code);",
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Identificador de esta corrida: todas las trazas y datos de la demo lo llevan.",
+                  "const run = Date.now().toString(36).slice(-5);",
+                  "pm.collectionVariables.set('run', run);",
+                  "const flujos = {",
+                  "  setup: 'precondiciones', f5: 'f5-necesidad', f1: 'f1-donacion', f2: 'f2-entrega', f4prep: 'f4-mision',",
+                  "  f4: 'f4-procesar', f6: 'f6-estadisticas', f3: 'f3-queja', f7: 'f7-modelo-lectura',",
+                  "  a1: 'alarma-fallo-procesar', a2: 'alarma-perdida-progreso', a3: 'alarma-donaciones-rechazadas', sync: 'resincronizar'",
+                  "};",
+                  "Object.entries(flujos).forEach(([k, v]) => pm.collectionVariables.set('trace_' + k, 'demo-' + run + '-' + v));",
+                  "console.log('Corrida ' + run + ': buscar en Datadog Logs  @traceId:demo-' + run + '-*');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "01 GET /incentivos/insignias (despierta Incentivos)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_setup}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/incentivos/insignias",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "incentivos",
+                "insignias"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] GET /incentivos/insignias -> ' + pm.response.code);",
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02 GET /donaciones/productos (despierta Donaciones)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_setup}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/donaciones/productos",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "donaciones",
+                "productos"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] GET /donaciones/productos -> ' + pm.response.code);",
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "03 GET /donadores/donadores (despierta Donadores)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_setup}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/donadores/donadores",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "donadores",
+                "donadores"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] GET /donadores/donadores -> ' + pm.response.code);",
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "04 GET /logistica/api/depositos (despierta Logística)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_setup}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/logistica/api/depositos",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "logistica",
+                "api",
+                "depositos"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] GET /logistica/api/depositos -> ' + pm.response.code);",
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "05 GET /consultas/estado (despierta el Servicio de Consultas)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_setup}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/consultas/estado",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "consultas",
+                "estado"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] GET /consultas/estado -> ' + pm.response.code);",
+                  "",
+                  "const k = 'reintento_estado0';",
+                  "const i = Number(pm.collectionVariables.get(k) || 0);",
+                  "if ([404, 429, 502, 503].includes(pm.response.code) && i < 5) {",
+                  "  pm.collectionVariables.set(k, i + 1);",
+                  "  console.log('modelo de lectura todavía sin datos (' + pm.response.code + '), reintento ' + (i + 1) + ' (consistencia eventual)');",
+                  "  setTimeout(() => {}, 3000);",
+                  "  pm.execution.setNextRequest(pm.info.requestName);",
+                  "} else {",
+                  "  pm.collectionVariables.unset(k);",
+                  "  pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "06 [Donaciones] POST /identificadores (CODIGODEBARRAS)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_setup}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/donaciones/identificadores",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "donaciones",
+                "identificadores"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"CODIGODEBARRAS\",\n  \"descripcion\": \"Identificador demo {{run}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] POST /donaciones/identificadores -> ' + pm.response.code);",
+                  "pm.test('status 200 o 201', () => pm.expect(pm.response.code).to.be.oneOf([200,201]));const b = pm.response.json(); pm.collectionVariables.set('identificador', String(b.id)); console.log('identificador = ' + b.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "07 [Donaciones] POST /productos - producto A (con subcategoría)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_setup}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/donaciones/productos",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "donaciones",
+                "productos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Demo A {{run}}\",\n  \"descripcion\": \"Producto demo A para trazar\",\n  \"categoriaID\": \"Alimentos\",\n  \"subcategoria\": \"Secos\",\n  \"identificadorID\": \"{{identificador}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] POST /donaciones/productos -> ' + pm.response.code);",
+                  "pm.test('status 200 o 201', () => pm.expect(pm.response.code).to.be.oneOf([200,201]));const b = pm.response.json(); pm.collectionVariables.set('prodA', String(b.id)); console.log('prodA = ' + b.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "08 [Donaciones] POST /productos - producto B (con subcategoría)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_setup}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/donaciones/productos",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "donaciones",
+                "productos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Demo B {{run}}\",\n  \"descripcion\": \"Producto demo B para trazar\",\n  \"categoriaID\": \"Alimentos\",\n  \"subcategoria\": \"Lacteos\",\n  \"identificadorID\": \"{{identificador}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] POST /donaciones/productos -> ' + pm.response.code);",
+                  "pm.test('status 200 o 201', () => pm.expect(pm.response.code).to.be.oneOf([200,201]));const b = pm.response.json(); pm.collectionVariables.set('prodB', String(b.id)); console.log('prodB = ' + b.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "09 [Donaciones] POST /productos - producto C (con subcategoría)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_setup}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/donaciones/productos",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "donaciones",
+                "productos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Demo C {{run}}\",\n  \"descripcion\": \"Producto demo C para trazar\",\n  \"categoriaID\": \"Alimentos\",\n  \"subcategoria\": \"Conservas\",\n  \"identificadorID\": \"{{identificador}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] POST /donaciones/productos -> ' + pm.response.code);",
+                  "pm.test('status 200 o 201', () => pm.expect(pm.response.code).to.be.oneOf([200,201]));const b = pm.response.json(); pm.collectionVariables.set('prodC', String(b.id)); console.log('prodC = ' + b.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "10 [Donadores] POST /donadores - donador de la demo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_setup}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/donadores/donadores",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "donadores",
+                "donadores"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Demo\",\n  \"apellido\": \"Trazas {{run}}\",\n  \"edad\": 30,\n  \"email\": \"demo-{{run}}@mail.com\",\n  \"nroDocumento\": \"9{{run}}\",\n  \"domicilio\": \"Av. Medrano 951\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] POST /donadores/donadores -> ' + pm.response.code);",
+                  "pm.test('status 200 o 201', () => pm.expect(pm.response.code).to.be.oneOf([200,201]));const b = pm.response.json(); pm.collectionVariables.set('donador', String(b.id)); console.log('donador = ' + b.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "11 [Donadores] POST /entidades - entidad beneficiaria",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_setup}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/donadores/entidades",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "donadores",
+                "entidades"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"razonSocial\": \"Comedor Demo {{run}}\",\n  \"domicilio\": \"Av. Medrano 951\",\n  \"telefono\": \"1111-1111\",\n  \"correo\": \"comedor-{{run}}@mail.com\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] POST /donadores/entidades -> ' + pm.response.code);",
+                  "pm.test('status 200 o 201', () => pm.expect(pm.response.code).to.be.oneOf([200,201]));const b = pm.response.json(); pm.collectionVariables.set('entidad', String(b.id)); console.log('entidad = ' + b.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "12 [Logística] POST /api/depositos - depósito SUBATENDIDOS",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_setup}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/logistica/api/depositos",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "logistica",
+                "api",
+                "depositos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Deposito Demo {{run}}\",\n  \"direccion\": \"Av. Medrano 951\",\n  \"capacidadMaxima\": 1000,\n  \"algoritmo\": \"SUBATENDIDOS\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] POST /logistica/api/depositos -> ' + pm.response.code);",
+                  "pm.test('status 200 o 201', () => pm.expect(pm.response.code).to.be.oneOf([200,201]));const b = pm.response.json(); pm.collectionVariables.set('deposito', String(b.depositoid)); console.log('deposito = ' + b.depositoid);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F5 · Registrar necesidades (traza: f5-necesidad)",
+      "item": [
+        {
+          "name": "01 [Donadores] POST /necesidades - producto A (valida el producto en Donaciones, consulta stock en Logística)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_f5}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/donadores/necesidades",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "donadores",
+                "necesidades"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"entidadID\": \"{{entidad}}\",\n  \"nivelDeUrgencia\": 8,\n  \"descripcion\": \"Necesidad demo A\",\n  \"cantidadObjetivo\": 10,\n  \"productoSolicitadoID\": \"{{prodA}}\",\n  \"tipo\": \"EXTRAORDINARIA\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] POST /donadores/necesidades -> ' + pm.response.code);",
+                  "pm.test('status 200 o 201', () => pm.expect(pm.response.code).to.be.oneOf([200,201]));const b = pm.response.json(); pm.collectionVariables.set('necA', String(b.id)); console.log('necA = ' + b.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02 [Donadores] POST /necesidades - producto B (valida el producto en Donaciones, consulta stock en Logística)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_f5}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/donadores/necesidades",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "donadores",
+                "necesidades"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"entidadID\": \"{{entidad}}\",\n  \"nivelDeUrgencia\": 7,\n  \"descripcion\": \"Necesidad demo B\",\n  \"cantidadObjetivo\": 10,\n  \"productoSolicitadoID\": \"{{prodB}}\",\n  \"tipo\": \"EXTRAORDINARIA\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] POST /donadores/necesidades -> ' + pm.response.code);",
+                  "pm.test('status 200 o 201', () => pm.expect(pm.response.code).to.be.oneOf([200,201]));const b = pm.response.json(); pm.collectionVariables.set('necB', String(b.id)); console.log('necB = ' + b.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "03 [Donadores] POST /necesidades - producto C (valida el producto en Donaciones, consulta stock en Logística)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_f5}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/donadores/necesidades",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "donadores",
+                "necesidades"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"entidadID\": \"{{entidad}}\",\n  \"nivelDeUrgencia\": 6,\n  \"descripcion\": \"Necesidad demo C\",\n  \"cantidadObjetivo\": 10,\n  \"productoSolicitadoID\": \"{{prodC}}\",\n  \"tipo\": \"EXTRAORDINARIA\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] POST /donadores/necesidades -> ' + pm.response.code);",
+                  "pm.test('status 200 o 201', () => pm.expect(pm.response.code).to.be.oneOf([200,201]));const b = pm.response.json(); pm.collectionVariables.set('necC', String(b.id)); console.log('necC = ' + b.id);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F1 · Realizar donaciones (traza: f1-donacion)",
+      "item": [
+        {
+          "name": "01 [Donaciones] POST /donaciones - producto A (valida donador, encola en Logística)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_f1}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/donaciones/donaciones",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "donaciones",
+                "donaciones"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donador}}\",\n  \"depositoID\": \"{{deposito}}\",\n  \"descripcion\": \"Donacion demo A\",\n  \"productoID\": \"{{prodA}}\",\n  \"cantidad\": 2\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] POST /donaciones/donaciones -> ' + pm.response.code);",
+                  "pm.test('status 201', () => pm.expect(pm.response.code).to.be.oneOf([201]));",
+                  "pm.test('nace INGRESADA', () => pm.expect(pm.response.json().estado).to.eql('INGRESADA'));",
+                  "const b = pm.response.json(); pm.collectionVariables.set('donA', String(b.id)); console.log('donA = ' + b.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02 [Donaciones] POST /donaciones - producto B (valida donador, encola en Logística)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_f1}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/donaciones/donaciones",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "donaciones",
+                "donaciones"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donador}}\",\n  \"depositoID\": \"{{deposito}}\",\n  \"descripcion\": \"Donacion demo B\",\n  \"productoID\": \"{{prodB}}\",\n  \"cantidad\": 2\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] POST /donaciones/donaciones -> ' + pm.response.code);",
+                  "pm.test('status 201', () => pm.expect(pm.response.code).to.be.oneOf([201]));",
+                  "pm.test('nace INGRESADA', () => pm.expect(pm.response.json().estado).to.eql('INGRESADA'));",
+                  "const b = pm.response.json(); pm.collectionVariables.set('donB', String(b.id)); console.log('donB = ' + b.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "03 [Donaciones] POST /donaciones - producto C (valida donador, encola en Logística)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_f1}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/donaciones/donaciones",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "donaciones",
+                "donaciones"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{donador}}\",\n  \"depositoID\": \"{{deposito}}\",\n  \"descripcion\": \"Donacion demo C\",\n  \"productoID\": \"{{prodC}}\",\n  \"cantidad\": 2\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] POST /donaciones/donaciones -> ' + pm.response.code);",
+                  "pm.test('status 201', () => pm.expect(pm.response.code).to.be.oneOf([201]));",
+                  "pm.test('nace INGRESADA', () => pm.expect(pm.response.json().estado).to.eql('INGRESADA'));",
+                  "const b = pm.response.json(); pm.collectionVariables.set('donC', String(b.id)); console.log('donC = ' + b.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "04 [Logística] GET /api/asignaciones/paquetes/paq-{id} - espera al worker (asincrónico) A",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_f1}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/logistica/api/asignaciones/paquetes/paq-{{donA}}",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "logistica",
+                "api",
+                "asignaciones",
+                "paquetes",
+                "paq-{{donA}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] GET /logistica/api/asignaciones/paquetes/paq-{{donA}} -> ' + pm.response.code);",
+                  "",
+                  "const k = 'intentos_A';",
+                  "const i = Number(pm.collectionVariables.get(k) || 0);",
+                  "if (pm.response.code === 404 && i < 10) {",
+                  "  pm.collectionVariables.set(k, i + 1);",
+                  "  console.log('el worker todavía no asignó paq-' + pm.collectionVariables.get('donA') + ', reintento ' + (i + 1));",
+                  "  setTimeout(() => {}, 3000);",
+                  "  pm.execution.setNextRequest(pm.info.requestName);",
+                  "} else {",
+                  "  pm.collectionVariables.unset(k);",
+                  "  pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "  const a = pm.response.json();",
+                  "  pm.test('asignada a la necesidad de la demo (MATCHMAKING)', () => pm.expect(a.estado).to.eql('ASIGNADA'));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "05 [Logística] GET /api/asignaciones/paquetes/paq-{id} - espera al worker (asincrónico) B",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_f1}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/logistica/api/asignaciones/paquetes/paq-{{donB}}",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "logistica",
+                "api",
+                "asignaciones",
+                "paquetes",
+                "paq-{{donB}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] GET /logistica/api/asignaciones/paquetes/paq-{{donB}} -> ' + pm.response.code);",
+                  "",
+                  "const k = 'intentos_B';",
+                  "const i = Number(pm.collectionVariables.get(k) || 0);",
+                  "if (pm.response.code === 404 && i < 10) {",
+                  "  pm.collectionVariables.set(k, i + 1);",
+                  "  console.log('el worker todavía no asignó paq-' + pm.collectionVariables.get('donB') + ', reintento ' + (i + 1));",
+                  "  setTimeout(() => {}, 3000);",
+                  "  pm.execution.setNextRequest(pm.info.requestName);",
+                  "} else {",
+                  "  pm.collectionVariables.unset(k);",
+                  "  pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "  const a = pm.response.json();",
+                  "  pm.test('asignada a la necesidad de la demo (MATCHMAKING)', () => pm.expect(a.estado).to.eql('ASIGNADA'));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "06 [Logística] GET /api/asignaciones/paquetes/paq-{id} - espera al worker (asincrónico) C",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_f1}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/logistica/api/asignaciones/paquetes/paq-{{donC}}",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "logistica",
+                "api",
+                "asignaciones",
+                "paquetes",
+                "paq-{{donC}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] GET /logistica/api/asignaciones/paquetes/paq-{{donC}} -> ' + pm.response.code);",
+                  "",
+                  "const k = 'intentos_C';",
+                  "const i = Number(pm.collectionVariables.get(k) || 0);",
+                  "if (pm.response.code === 404 && i < 10) {",
+                  "  pm.collectionVariables.set(k, i + 1);",
+                  "  console.log('el worker todavía no asignó paq-' + pm.collectionVariables.get('donC') + ', reintento ' + (i + 1));",
+                  "  setTimeout(() => {}, 3000);",
+                  "  pm.execution.setNextRequest(pm.info.requestName);",
+                  "} else {",
+                  "  pm.collectionVariables.unset(k);",
+                  "  pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "  const a = pm.response.json();",
+                  "  pm.test('asignada a la necesidad de la demo (MATCHMAKING)', () => pm.expect(a.estado).to.eql('ASIGNADA'));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F2 · Reportar entregas (traza: f2-entrega)",
+      "item": [
+        {
+          "name": "01 [Logística] POST /api/asignaciones/reportar-entrega paq-A (ACEPTADA en Donaciones + satisfacción en Donadores)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_f2}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/logistica/api/asignaciones/reportar-entrega",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "logistica",
+                "api",
+                "asignaciones",
+                "reportar-entrega"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paqueteid\": \"paq-{{donA}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] POST /logistica/api/asignaciones/reportar-entrega -> ' + pm.response.code);",
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02 [Logística] POST /api/asignaciones/reportar-entrega paq-B (ACEPTADA en Donaciones + satisfacción en Donadores)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_f2}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/logistica/api/asignaciones/reportar-entrega",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "logistica",
+                "api",
+                "asignaciones",
+                "reportar-entrega"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paqueteid\": \"paq-{{donB}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] POST /logistica/api/asignaciones/reportar-entrega -> ' + pm.response.code);",
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "03 [Logística] POST /api/asignaciones/reportar-entrega paq-C (ACEPTADA en Donaciones + satisfacción en Donadores)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_f2}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/logistica/api/asignaciones/reportar-entrega",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "logistica",
+                "api",
+                "asignaciones",
+                "reportar-entrega"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paqueteid\": \"paq-{{donC}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] POST /logistica/api/asignaciones/reportar-entrega -> ' + pm.response.code);",
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F4 · Misión COMPLETITUD y procesar al donador (trazas: f4-mision, f4-procesar)",
+      "item": [
+        {
+          "name": "01 [Incentivos] POST /insignias",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_f4prep}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/incentivos/insignias",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "incentivos",
+                "insignias"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"ins-demo-{{run}}\",\n  \"nombre\": \"Donador Completo\",\n  \"descripcion\": \"Donó 3 productos distintos\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] POST /incentivos/insignias -> ' + pm.response.code);",
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02 [Incentivos] POST /misiones - COMPLETITUD",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_f4prep}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/incentivos/misiones",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "incentivos",
+                "misiones"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"mis-demo-{{run}}\",\n  \"nombre\": \"Completitud demo\",\n  \"insigniaID\": \"ins-demo-{{run}}\",\n  \"categoriaInicio\": \"OCASIONAL\",\n  \"categoriaFin\": \"TRANSFORMADOR\",\n  \"tipo\": \"COMPLETITUD\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] POST /incentivos/misiones -> ' + pm.response.code);",
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "03 [Incentivos] POST /donadores/{id}/mision-actual (valida el donador en Donadores)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_f4prep}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/incentivos/donadores/{{donador}}/mision-actual",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "incentivos",
+                "donadores",
+                "{{donador}}",
+                "mision-actual"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"mis-demo-{{run}}\",\n  \"nombre\": \"Completitud demo\",\n  \"insigniaID\": \"ins-demo-{{run}}\",\n  \"categoriaInicio\": \"OCASIONAL\",\n  \"categoriaFin\": \"TRANSFORMADOR\",\n  \"tipo\": \"COMPLETITUD\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] POST /incentivos/donadores/{{donador}}/mision-actual -> ' + pm.response.code);",
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "04 [Incentivos] POST /donadores/{id}/procesar (Donadores + Donaciones + PATCH categoría)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_f4}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/incentivos/donadores/{{donador}}/procesar",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "incentivos",
+                "donadores",
+                "{{donador}}",
+                "procesar"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] POST /incentivos/donadores/{{donador}}/procesar -> ' + pm.response.code);",
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "05 [Incentivos] GET /donadores/{id}/insignias - ganó la insignia",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_f4}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/incentivos/donadores/{{donador}}/insignias",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "incentivos",
+                "donadores",
+                "{{donador}}",
+                "insignias"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] GET /incentivos/donadores/{{donador}}/insignias -> ' + pm.response.code);",
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test('tiene la insignia de la misión', () => pm.expect(pm.response.json().map(i => i.id)).to.include('ins-demo-' + pm.collectionVariables.get('run')));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "06 [Donadores] GET /donadores/{id}/categorias - historial de categorías (E6)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_f4}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/donadores/donadores/{{donador}}/categorias",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "donadores",
+                "donadores",
+                "{{donador}}",
+                "categorias"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] GET /donadores/donadores/{{donador}}/categorias -> ' + pm.response.code);",
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F6 · Estadísticas del donador, síncrono (traza: f6-estadisticas)",
+      "item": [
+        {
+          "name": "01 [Donadores] GET /donadores/{id}/estadisticas (llama a Incentivos)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_f6}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/donadores/donadores/{{donador}}/estadisticas",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "donadores",
+                "donadores",
+                "{{donador}}",
+                "estadisticas"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] GET /donadores/donadores/{{donador}}/estadisticas -> ' + pm.response.code);",
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F3 · Registrar una queja (traza: f3-queja)",
+      "item": [
+        {
+          "name": "01 [Donaciones] POST /donaciones/{id}/quejas (Donadores registra la queja)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_f3}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "text/plain"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/donaciones/donaciones/{{donA}}/quejas",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "donaciones",
+                "donaciones",
+                "{{donA}}",
+                "quejas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "El paquete llegó con la caja rota"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] POST /donaciones/donaciones/{{donA}}/quejas -> ' + pm.response.code);",
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test('queda CONQUEJA', () => pm.expect(pm.response.json().estado).to.eql('CONQUEJA'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02 [Donadores] GET /donadores/{id}/quejas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_f3}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/donadores/donadores/{{donador}}/quejas",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "donadores",
+                "donadores",
+                "{{donador}}",
+                "quejas"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] GET /donadores/donadores/{{donador}}/quejas -> ' + pm.response.code);",
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F7 · Modelo de lectura CQRS (traza: f7-modelo-lectura)",
+      "item": [
+        {
+          "name": "01 [Consultas] GET /donadores/{id}/ficha - ficha integral",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_f7}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/consultas/donadores/{{donador}}/ficha",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "consultas",
+                "donadores",
+                "{{donador}}",
+                "ficha"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] GET /consultas/donadores/{{donador}}/ficha -> ' + pm.response.code);",
+                  "",
+                  "const k = 'reintento_ficha';",
+                  "const i = Number(pm.collectionVariables.get(k) || 0);",
+                  "if ([404, 429, 502, 503].includes(pm.response.code) && i < 5) {",
+                  "  pm.collectionVariables.set(k, i + 1);",
+                  "  console.log('modelo de lectura todavía sin datos (' + pm.response.code + '), reintento ' + (i + 1) + ' (consistencia eventual)');",
+                  "  setTimeout(() => {}, 3000);",
+                  "  pm.execution.setNextRequest(pm.info.requestName);",
+                  "} else {",
+                  "  pm.collectionVariables.unset(k);",
+                  "  pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02 [Consultas] GET /necesidades/urgentes?urgenciaMin=6",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_f7}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/consultas/necesidades/urgentes?urgenciaMin=6",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "consultas",
+                "necesidades",
+                "urgentes"
+              ],
+              "query": [
+                {
+                  "key": "urgenciaMin",
+                  "value": "6"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] GET /consultas/necesidades/urgentes?urgenciaMin=6 -> ' + pm.response.code);",
+                  "",
+                  "const k = 'reintento_urgentes';",
+                  "const i = Number(pm.collectionVariables.get(k) || 0);",
+                  "if ([404, 429, 502, 503].includes(pm.response.code) && i < 5) {",
+                  "  pm.collectionVariables.set(k, i + 1);",
+                  "  console.log('modelo de lectura todavía sin datos (' + pm.response.code + '), reintento ' + (i + 1) + ' (consistencia eventual)');",
+                  "  setTimeout(() => {}, 3000);",
+                  "  pm.execution.setNextRequest(pm.info.requestName);",
+                  "} else {",
+                  "  pm.collectionVariables.unset(k);",
+                  "  pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "03 [Consultas] GET /depositos/estado?depositoId={id}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_f7}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/consultas/depositos/estado?depositoId={{deposito}}",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "consultas",
+                "depositos",
+                "estado"
+              ],
+              "query": [
+                {
+                  "key": "depositoId",
+                  "value": "{{deposito}}"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] GET /consultas/depositos/estado?depositoId={{deposito}} -> ' + pm.response.code);",
+                  "",
+                  "const k = 'reintento_depositos';",
+                  "const i = Number(pm.collectionVariables.get(k) || 0);",
+                  "if ([404, 429, 502, 503].includes(pm.response.code) && i < 5) {",
+                  "  pm.collectionVariables.set(k, i + 1);",
+                  "  console.log('modelo de lectura todavía sin datos (' + pm.response.code + '), reintento ' + (i + 1) + ' (consistencia eventual)');",
+                  "  setTimeout(() => {}, 3000);",
+                  "  pm.execution.setNextRequest(pm.info.requestName);",
+                  "} else {",
+                  "  pm.collectionVariables.unset(k);",
+                  "  pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "04 [Consultas] GET /calidad",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_f7}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/consultas/calidad",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "consultas",
+                "calidad"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] GET /consultas/calidad -> ' + pm.response.code);",
+                  "",
+                  "const k = 'reintento_calidad';",
+                  "const i = Number(pm.collectionVariables.get(k) || 0);",
+                  "if ([404, 429, 502, 503].includes(pm.response.code) && i < 5) {",
+                  "  pm.collectionVariables.set(k, i + 1);",
+                  "  console.log('modelo de lectura todavía sin datos (' + pm.response.code + '), reintento ' + (i + 1) + ' (consistencia eventual)');",
+                  "  setTimeout(() => {}, 3000);",
+                  "  pm.execution.setNextRequest(pm.info.requestName);",
+                  "} else {",
+                  "  pm.collectionVariables.unset(k);",
+                  "  pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "05 [Consultas] GET /estado - sincronización",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_f7}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/consultas/estado",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "consultas",
+                "estado"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] GET /consultas/estado -> ' + pm.response.code);",
+                  "",
+                  "const k = 'reintento_estado';",
+                  "const i = Number(pm.collectionVariables.get(k) || 0);",
+                  "if ([404, 429, 502, 503].includes(pm.response.code) && i < 5) {",
+                  "  pm.collectionVariables.set(k, i + 1);",
+                  "  console.log('modelo de lectura todavía sin datos (' + pm.response.code + '), reintento ' + (i + 1) + ' (consistencia eventual)');",
+                  "  setTimeout(() => {}, 3000);",
+                  "  pm.execution.setNextRequest(pm.info.requestName);",
+                  "} else {",
+                  "  pm.collectionVariables.unset(k);",
+                  "  pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "A · Disparar alarmas de Incentivos y Donaciones",
+      "item": [
+        {
+          "name": "A1 [Incentivos] POST /donadores/no-existe/procesar -> 404 (monitor «fallos al procesar donadores», ventana 5 min)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_a1}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/incentivos/donadores/no-existe-{{run}}/procesar",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "incentivos",
+                "donadores",
+                "no-existe-{{run}}",
+                "procesar"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] POST /incentivos/donadores/no-existe-{{run}}/procesar -> ' + pm.response.code);",
+                  "pm.test('status 404', () => pm.expect(pm.response.code).to.be.oneOf([404]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A2.1 [Incentivos] POST /insignias - insignia de DONACIONES_EXITOSAS",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_a2}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/incentivos/insignias",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "incentivos",
+                "insignias"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"ins-exitosas-{{run}}\",\n  \"nombre\": \"Donaciones Exitosas\",\n  \"descripcion\": \"20 donaciones aceptadas\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] POST /incentivos/insignias -> ' + pm.response.code);",
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A2.2 [Incentivos] POST /misiones - DONACIONES_EXITOSAS",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_a2}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/incentivos/misiones",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "incentivos",
+                "misiones"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"mis-exitosas-{{run}}\",\n  \"nombre\": \"Donaciones exitosas\",\n  \"insigniaID\": \"ins-exitosas-{{run}}\",\n  \"categoriaInicio\": \"COLABORADOR\",\n  \"categoriaFin\": \"SALVADOR\",\n  \"tipo\": \"DONACIONES_EXITOSAS\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] POST /incentivos/misiones -> ' + pm.response.code);",
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A2.3 [Incentivos] POST /donadores/{id}/insignias - otorgar la insignia (simula que ya la tenía)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_a2}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/incentivos/donadores/{{donador}}/insignias",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "incentivos",
+                "donadores",
+                "{{donador}}",
+                "insignias"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"ins-exitosas-{{run}}\",\n  \"nombre\": \"Donaciones Exitosas\",\n  \"descripcion\": \"20 donaciones aceptadas\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] POST /incentivos/donadores/{{donador}}/insignias -> ' + pm.response.code);",
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A2.4 [Incentivos] POST /donadores/{id}/mision-actual - DONACIONES_EXITOSAS",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_a2}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/incentivos/donadores/{{donador}}/mision-actual",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "incentivos",
+                "donadores",
+                "{{donador}}",
+                "mision-actual"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"mis-exitosas-{{run}}\",\n  \"nombre\": \"Donaciones exitosas\",\n  \"insigniaID\": \"ins-exitosas-{{run}}\",\n  \"categoriaInicio\": \"COLABORADOR\",\n  \"categoriaFin\": \"SALVADOR\",\n  \"tipo\": \"DONACIONES_EXITOSAS\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] POST /incentivos/donadores/{{donador}}/mision-actual -> ' + pm.response.code);",
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A2.5 [Incentivos] POST /donadores/{id}/procesar - tiene < 20 ACEPTADA: pierde la insignia (monitor «pérdida de progreso», 15 min)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_a2}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/incentivos/donadores/{{donador}}/procesar",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "incentivos",
+                "donadores",
+                "{{donador}}",
+                "procesar"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] POST /incentivos/donadores/{{donador}}/procesar -> ' + pm.response.code);",
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A2.6 [Incentivos] GET /donadores/{id}/insignias - ya no tiene la de DONACIONES_EXITOSAS",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_a2}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/incentivos/donadores/{{donador}}/insignias",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "incentivos",
+                "donadores",
+                "{{donador}}",
+                "insignias"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] GET /incentivos/donadores/{{donador}}/insignias -> ' + pm.response.code);",
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test('perdió la insignia', () => pm.expect(pm.response.json().map(i => i.id)).to.not.include('ins-exitosas-' + pm.collectionVariables.get('run')));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A3.1 [Donadores] POST /donadores - donador a banear",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_a3}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/donadores/donadores",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "donadores",
+                "donadores"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Demo\",\n  \"apellido\": \"Baneado {{run}}\",\n  \"edad\": 30,\n  \"email\": \"baneado-{{run}}@mail.com\",\n  \"nroDocumento\": \"8{{run}}\",\n  \"domicilio\": \"Av. Medrano 951\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] POST /donadores/donadores -> ' + pm.response.code);",
+                  "pm.test('status 200 o 201', () => pm.expect(pm.response.code).to.be.oneOf([200,201]));const b = pm.response.json(); pm.collectionVariables.set('baneado', String(b.id)); console.log('baneado = ' + b.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A3.2 [Donadores] PATCH /donadores/{id}/estado -> BANEADO",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_a3}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/donadores/donadores/{{baneado}}/estado",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "donadores",
+                "donadores",
+                "{{baneado}}",
+                "estado"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"BANEADO\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] PATCH /donadores/donadores/{{baneado}}/estado -> ' + pm.response.code);",
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A3.3 [Donaciones] POST /donaciones con donador BANEADO -> 403 (1/5, monitor «pico de donaciones rechazadas»)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_a3}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/donaciones/donaciones",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "donaciones",
+                "donaciones"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{baneado}}\",\n  \"depositoID\": \"{{deposito}}\",\n  \"descripcion\": \"Intento rechazado\",\n  \"productoID\": \"{{prodA}}\",\n  \"cantidad\": 1\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] POST /donaciones/donaciones -> ' + pm.response.code);",
+                  "pm.test('status 403', () => pm.expect(pm.response.code).to.be.oneOf([403]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A3.4 [Donaciones] POST /donaciones con donador BANEADO -> 403 (2/5, monitor «pico de donaciones rechazadas»)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_a3}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/donaciones/donaciones",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "donaciones",
+                "donaciones"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{baneado}}\",\n  \"depositoID\": \"{{deposito}}\",\n  \"descripcion\": \"Intento rechazado\",\n  \"productoID\": \"{{prodA}}\",\n  \"cantidad\": 1\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] POST /donaciones/donaciones -> ' + pm.response.code);",
+                  "pm.test('status 403', () => pm.expect(pm.response.code).to.be.oneOf([403]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A3.5 [Donaciones] POST /donaciones con donador BANEADO -> 403 (3/5, monitor «pico de donaciones rechazadas»)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_a3}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/donaciones/donaciones",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "donaciones",
+                "donaciones"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{baneado}}\",\n  \"depositoID\": \"{{deposito}}\",\n  \"descripcion\": \"Intento rechazado\",\n  \"productoID\": \"{{prodA}}\",\n  \"cantidad\": 1\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] POST /donaciones/donaciones -> ' + pm.response.code);",
+                  "pm.test('status 403', () => pm.expect(pm.response.code).to.be.oneOf([403]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A3.6 [Donaciones] POST /donaciones con donador BANEADO -> 403 (4/5, monitor «pico de donaciones rechazadas»)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_a3}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/donaciones/donaciones",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "donaciones",
+                "donaciones"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{baneado}}\",\n  \"depositoID\": \"{{deposito}}\",\n  \"descripcion\": \"Intento rechazado\",\n  \"productoID\": \"{{prodA}}\",\n  \"cantidad\": 1\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] POST /donaciones/donaciones -> ' + pm.response.code);",
+                  "pm.test('status 403', () => pm.expect(pm.response.code).to.be.oneOf([403]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A3.7 [Donaciones] POST /donaciones con donador BANEADO -> 403 (5/5, monitor «pico de donaciones rechazadas»)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_a3}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/donaciones/donaciones",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "donaciones",
+                "donaciones"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donadorID\": \"{{baneado}}\",\n  \"depositoID\": \"{{deposito}}\",\n  \"descripcion\": \"Intento rechazado\",\n  \"productoID\": \"{{prodA}}\",\n  \"cantidad\": 1\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] POST /donaciones/donaciones -> ' + pm.response.code);",
+                  "pm.test('status 403', () => pm.expect(pm.response.code).to.be.oneOf([403]));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Z · Resumen: links a Datadog por flujo",
+      "item": [
+        {
+          "name": "Z1 GET gateway /actuator/health - ver pestaña Visualize",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Trace-Id",
+                "value": "{{trace_setup}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gw}}/actuator/health",
+              "host": [
+                "{{gw}}"
+              ],
+              "path": [
+                "actuator",
+                "health"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Respuesta y traza visibles en la consola de Postman",
+                  "const tid = pm.response.headers.get('x-trace-id');",
+                  "console.log('[' + tid + '] GET /actuator/health -> ' + pm.response.code);",
+                  "",
+                  "const run = pm.collectionVariables.get('run');",
+                  "const site = pm.environment.get('ddSite') || pm.collectionVariables.get('ddSite') || 'us5.datadoghq.com';",
+                  "const claves = ['setup','f5','f1','f2','f4prep','f4','f6','f3','f7','a1','a2','a3','sync'];",
+                  "const filas = claves.map(k => pm.collectionVariables.get('trace_' + k));",
+                  "const link = (q) => 'https://' + site + '/logs?query=' + encodeURIComponent(q) + '&live=false&from_ts=' + (Date.now() - 3600e3) + '&to_ts=' + (Date.now() + 600e3);",
+                  "console.log('==== Trazas de la corrida ' + run + ' ====');",
+                  "filas.forEach(t => console.log(t + '  ->  ' + link('@traceId:' + t)));",
+                  "const tpl = '<style>body{font-family:sans-serif}td{padding:4px 10px;border-bottom:1px solid #ddd}</style>' +",
+                  "  '<h3>Corrida {{run}}: trazas para mostrar en Datadog</h3><table>{{#each filas}}<tr><td><code>{{this.t}}</code></td><td><a href=\"{{this.l}}\" target=\"_blank\">abrir en Datadog Logs</a></td></tr>{{/each}}' +",
+                  "  '<tr><td><b>Todo junto</b></td><td><a href=\"{{todo}}\" target=\"_blank\">@traceId:demo-{{run}}-*</a></td></tr></table>';",
+                  "pm.visualizer.set(tpl, { run, filas: filas.map(t => ({ t, l: link('@traceId:' + t) })), todo: link('@traceId:demo-' + run + '-*') });",
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

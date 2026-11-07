@@ -15,7 +15,17 @@ Las métricas se exportan solo cuando `DD_METRICS_ENABLED=true`. En Render confi
 
 ## Crear alarmas
 
-Los JSON `datadog-monitor-*.json` de esta carpeta contienen los cuerpos para crear monitores de tipo `query alert`. También se pueden crear desde Datadog → **Monitors → New Monitor → Metric**, copiando la query correspondiente. Elegir los destinatarios de notificación en Datadog; no dejar destinatarios de ejemplo.
+Los JSON `datadog-monitor-*.json` de esta carpeta contienen los cuerpos para crear monitores de tipo `query alert`. También se pueden crear desde Datadog → **Monitors → New Monitor → Metric**, copiando la query correspondiente.
+
+**Notificaciones:** el mensaje de cada monitor termina con `@taraujo@frba.utn.edu.ar`. En Datadog, un `@mail` dentro del mensaje hace que la alerta (y su recuperación) se envíe por mail a esa dirección. Para sumar destinatarios, agregar más `@mail` al final del `message` de cada JSON, o pasarlos al script con `-Notificar "@otro@mail.com"`.
+
+Para crearlos o actualizarlos todos de una vez (el script es idempotente):
+
+```powershell
+$env:DD_API_KEY = "..."; $env:DD_APP_KEY = "..."; $env:DD_SITE = "us5.datadoghq.com"
+.\docs\datadog-crear-monitores.ps1 -SoloValidar   # opcional: solo valida contra la API
+.\docs\datadog-crear-monitores.ps1
+```
 
 - Errores de negocio/servicios aguas arriba: `sum(last_5m):sum:incentivos.donador.procesamientos{application:incentivos,env:prod,resultado:error}.as_count() > 0`
 - Regresiones de progreso: `sum(last_15m):sum:incentivos.progreso.perdido{application:incentivos,env:prod}.as_count() > 0`
