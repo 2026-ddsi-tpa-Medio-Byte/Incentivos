@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="ar.edu.utn.dds.k3003.catedra.incentivos.IncentivosTest" time="1.154" tests="10" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="ar.edu.utn.dds.k3003.catedra.incentivos.IncentivosTest" time="1.561" tests="10" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="22"/>
     <property name="sun.cpu.isalist" value="amd64"/>
@@ -15,9 +15,9 @@
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="user.country" value="AR"/>
     <property name="sun.boot.library.path" value="C:\Program Files\Java\jdk-22\bin"/>
-    <property name="sun.java.command" value="C:\Users\Wency\AppData\Local\Temp\surefire2564102448666033486\surefirebooter-20261026184533973_3.jar C:\Users\Wency\AppData\Local\Temp\surefire2564102448666033486 2026-10-26T18-45-33_896-jvmRun1 surefire-20261026184533973_1tmp surefire_0-20261026184533973_2tmp"/>
+    <property name="sun.java.command" value="C:\Users\Wency\AppData\Local\Temp\surefire1512374898968706357\surefirebooter-20261107013206287_3.jar C:\Users\Wency\AppData\Local\Temp\surefire1512374898968706357 2026-11-07T01-32-06_131-jvmRun1 surefire-20261107013206287_1tmp surefire_0-20261107013206287_2tmp"/>
     <property name="jdk.debug" value="release"/>
-    <property name="test" value="EventosIncentivosTest,PublicadorEventosTest,ProgresoMisionTest,IncentivosTest"/>
+    <property name="test" value="MisionesCicloDeVidaTest,EventosIncentivosTest,ProgresoMisionTest,IncentivosTest*"/>
     <property name="surefire.test.class.path" value="C:\Users\Wency\Desktop\UTN\Diseño de sistemas - 2026\Incentivos\target\test-classes;C:\Users\Wency\Desktop\UTN\Diseño de sistemas - 2026\Incentivos\target\classes;C:\Users\Wency\.m2\repository\org\springframework\boot\spring-boot-starter-web\3.5.8\spring-boot-starter-web-3.5.8.jar;C:\Users\Wency\.m2\repository\org\springframework\boot\spring-boot-starter\3.5.8\spring-boot-starter-3.5.8.jar;C:\Users\Wency\.m2\repository\org\springframework\boot\spring-boot-starter-logging\3.5.8\spring-boot-starter-logging-3.5.8.jar;C:\Users\Wency\.m2\repository\ch\qos\logback\logback-classic\1.5.21\logback-classic-1.5.21.jar;C:\Users\Wency\.m2\repository\ch\qos\logback\logback-core\1.5.21\logback-core-1.5.21.jar;C:\Users\Wency\.m2\repository\org\apache\logging\log4j\log4j-to-slf4j\2.24.3\log4j-to-slf4j-2.24.3.jar;C:\Users\Wency\.m2\repository\org\apache\logging\log4j\log4j-api\2.24.3\log4j-api-2.24.3.jar;C:\Users\Wency\.m2\repository\org\slf4j\jul-to-slf4j\2.0.17\jul-to-slf4j-2.0.17.jar;C:\Users\Wency\.m2\repository\jakarta\annotation\jakarta.annotation-api\2.1.1\jakarta.annotation-api-2.1.1.jar;C:\Users\Wency\.m2\repository\org\yaml\snakeyaml\2.4\snakeyaml-2.4.jar;C:\Users\Wency\.m2\repository\org\springframework\boot\spring-boot-starter-json\3.5.8\spring-boot-starter-json-3.5.8.jar;C:\Users\Wency\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jdk8\2.19.4\jackson-datatype-jdk8-2.19.4.jar;C:\Users\Wency\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jsr310\2.19.4\jackson-datatype-jsr310-2.19.4.jar;C:\Users\Wency\.m2\repository\com\fasterxml\jackson\module\jackson-module-parameter-names\2.19.4\jackson-module-parameter-names-2.19.4.jar;C:\Users\Wency\.m2\repository\org\springframework\boot\spring-boot-starter-tomcat\3.5.8\spring-boot-starter-tomcat-3.5.8.jar;C:\Users\Wency\.m2\repository\org\apache\tomcat\embed\tomcat-embed-core\10.1.49\tomcat-embed-core-10.1.49.jar;C:\Users\Wency\.m2\repository\org\apache\tomcat\embed\tomcat-embed-el\10.1.49\tomcat-embed-el-10.1.49.jar;C:\Users\Wency\.m2\repository\org\apache\tomcat\embed\tomcat-embed-websocket\10.1.49\tomcat-embed-websocket-10.1.49.jar;C:\Users\Wency\.m2\repository\org\springframework\spring-web\6.2.14\spring-web-6.2.14.jar;C:\Users\Wency\.m2\repository\org\springframework\spring-beans\6.2.14\spring-beans-6.2.14.jar;C:\Users\Wency\.m2\repository\org\springframework\spring-webmvc\6.2.14\spring-webmvc-6.2.14.jar;C:\Users\Wency\.m2\repository\org\springframework\spring-aop\6.2.14\spring-aop-6.2.14.jar;C:\Users\Wency\.m2\repository\org\springframework\spring-context\6.2.14\spring-context-6.2.14.jar;C:\Users\Wency\.m2\repository\org\springframework\spring-expression\6.2.14\spring-expression-6.2.14.jar;C:\Users\Wency\.m2\repository\org\springframework\boot\spring-boot-starter-data-jpa\3.5.8\spring-boot-starter-data-jpa-3.5.8.jar;C:\Users\Wency\.m2\repository\org\springframework\boot\spring-boot-starter-jdbc\3.5.8\spring-boot-starter-jdbc-3.5.8.jar;C:\Users\Wency\.m2\repository\com\zaxxer\HikariCP\6.3.3\HikariCP-6.3.3.jar;C:\Users\Wency\.m2\repository\org\springframework\spring-jdbc\6.2.14\spring-jdbc-6.2.14.jar;C:\Users\Wency\.m2\repository\org\hibernate\orm\hibernate-core\6.6.36.Final\hibernate-core-6.6.36.Final.jar;C:\Users\Wency\.m2\repository\jakarta\persistence\jakarta.persistence-api\3.1.0\jakarta.persistence-api-3.1.0.jar;C:\Users\Wency\.m2\repository\jakarta\transaction\jakarta.transaction-api\2.0.1\jakarta.transaction-api-2.0.1.jar;C:\Users\Wency\.m2\repository\org\jboss\logging\jboss-logging\3.6.1.Final\jboss-logging-3.6.1.Final.jar;C:\Users\Wency\.m2\repository\org\hibernate\common\hibernate-commons-annotations\7.0.3.Final\hibernate-commons-annotations-7.0.3.Final.jar;C:\Users\Wency\.m2\repository\io\smallrye\jandex\3.2.0\jandex-3.2.0.jar;C:\Users\Wency\.m2\repository\com\fasterxml\classmate\1.7.1\classmate-1.7.1.jar;C:\Users\Wency\.m2\repository\org\glassfish\jaxb\jaxb-runtime\4.0.6\jaxb-runtime-4.0.6.jar;C:\Users\Wency\.m2\repository\org\glassfish\jaxb\jaxb-core\4.0.6\jaxb-core-4.0.6.jar;C:\Users\Wency\.m2\repository\org\eclipse\angus\angus-activation\2.0.3\angus-activation-2.0.3.jar;C:\Users\Wency\.m2\repository\org\glassfish\jaxb\txw2\4.0.6\txw2-4.0.6.jar;C:\Users\Wency\.m2\repository\com\sun\istack\istack-commons-runtime\4.1.2\istack-commons-runtime-4.1.2.jar;C:\Users\Wency\.m2\repository\jakarta\inject\jakarta.inject-api\2.0.1\jakarta.inject-api-2.0.1.jar;C:\Users\Wency\.m2\repository\org\antlr\antlr4-runtime\4.13.0\antlr4-runtime-4.13.0.jar;C:\Users\Wency\.m2\repository\org\springframework\data\spring-data-jpa\3.5.6\spring-data-jpa-3.5.6.jar;C:\Users\Wency\.m2\repository\org\springframework\data\spring-data-commons\3.5.6\spring-data-commons-3.5.6.jar;C:\Users\Wency\.m2\repository\org\springframework\spring-orm\6.2.14\spring-orm-6.2.14.jar;C:\Users\Wency\.m2\repository\org\springframework\spring-tx\6.2.14\spring-tx-6.2.14.jar;C:\Users\Wency\.m2\repository\org\springframework\spring-aspects\6.2.14\spring-aspects-6.2.14.jar;C:\Users\Wency\.m2\repository\org\aspectj\aspectjweaver\1.9.25\aspectjweaver-1.9.25.jar;C:\Users\Wency\.m2\repository\org\springframework\boot\spring-boot-starter-actuator\3.5.8\spring-boot-starter-actuator-3.5.8.jar;C:\Users\Wency\.m2\repository\org\springframework\boot\spring-boot-actuator-autoconfigure\3.5.8\spring-boot-actuator-autoconfigure-3.5.8.jar;C:\Users\Wency\.m2\repository\org\springframework\boot\spring-boot-actuator\3.5.8\spring-boot-actuator-3.5.8.jar;C:\Users\Wency\.m2\repository\io\micrometer\micrometer-observation\1.15.6\micrometer-observation-1.15.6.jar;C:\Users\Wency\.m2\repository\io\micrometer\micrometer-commons\1.15.6\micrometer-commons-1.15.6.jar;C:\Users\Wency\.m2\repository\io\micrometer\micrometer-jakarta9\1.15.6\micrometer-jakarta9-1.15.6.jar;C:\Users\Wency\.m2\repository\io\micrometer\micrometer-registry-datadog\1.15.6\micrometer-registry-datadog-1.15.6.jar;C:\Users\Wency\.m2\repository\io\micrometer\micrometer-core\1.15.6\micrometer-core-1.15.6.jar;C:\Users\Wency\.m2\repository\org\hdrhistogram\HdrHistogram\2.2.2\HdrHistogram-2.2.2.jar;C:\Users\Wency\.m2\repository\org\latencyutils\LatencyUtils\2.0.3\LatencyUtils-2.0.3.jar;C:\Users\Wency\.m2\repository\org\slf4j\slf4j-api\2.0.17\slf4j-api-2.0.17.jar;C:\Users\Wency\.m2\repository\org\springframework\boot\spring-boot-starter-amqp\3.5.8\spring-boot-starter-amqp-3.5.8.jar;C:\Users\Wency\.m2\repository\org\springframework\spring-messaging\6.2.14\spring-messaging-6.2.14.jar;C:\Users\Wency\.m2\repository\org\springframework\amqp\spring-rabbit\3.2.8\spring-rabbit-3.2.8.jar;C:\Users\Wency\.m2\repository\org\springframework\amqp\spring-amqp\3.2.8\spring-amqp-3.2.8.jar;C:\Users\Wency\.m2\repository\org\springframework\retry\spring-retry\2.0.12\spring-retry-2.0.12.jar;C:\Users\Wency\.m2\repository\com\rabbitmq\amqp-client\5.25.0\amqp-client-5.25.0.jar;C:\Users\Wency\.m2\repository\org\springframework\boot\spring-boot-devtools\3.5.8\spring-boot-devtools-3.5.8.jar;C:\Users\Wency\.m2\repository\org\springframework\boot\spring-boot\3.5.8\spring-boot-3.5.8.jar;C:\Users\Wency\.m2\repository\org\springframework\boot\spring-boot-autoconfigure\3.5.8\spring-boot-autoconfigure-3.5.8.jar;C:\Users\Wency\.m2\repository\com\h2database\h2\2.3.232\h2-2.3.232.jar;C:\Users\Wency\.m2\repository\org\postgresql\postgresql\42.7.8\postgresql-42.7.8.jar;C:\Users\Wency\.m2\repository\org\checkerframework\checker-qual\3.49.5\checker-qual-3.49.5.jar;C:\Users\Wency\.m2\repository\com\fasterxml\jackson\dataformat\jackson-dataformat-xml\2.19.4\jackson-dataformat-xml-2.19.4.jar;C:\Users\Wency\.m2\repository\com\fasterxml\jackson\core\jackson-core\2.19.4\jackson-core-2.19.4.jar;C:\Users\Wency\.m2\repository\com\fasterxml\jackson\core\jackson-annotations\2.19.4\jackson-annotations-2.19.4.jar;C:\Users\Wency\.m2\repository\com\fasterxml\jackson\core\jackson-databind\2.19.4\jackson-databind-2.19.4.jar;C:\Users\Wency\.m2\repository\org\codehaus\woodstox\stax2-api\4.2.2\stax2-api-4.2.2.jar;C:\Users\Wency\.m2\repository\com\fasterxml\woodstox\woodstox-core\7.1.1\woodstox-core-7.1.1.jar;C:\Users\Wency\.m2\repository\org\projectlombok\lombok\1.18.30\lombok-1.18.30.jar;C:\Users\Wency\.m2\repository\org\mockito\mockito-core\5.22.0\mockito-core-5.22.0.jar;C:\Users\Wency\.m2\repository\net\bytebuddy\byte-buddy\1.17.8\byte-buddy-1.17.8.jar;C:\Users\Wency\.m2\repository\net\bytebuddy\byte-buddy-agent\1.17.8\byte-buddy-agent-1.17.8.jar;C:\Users\Wency\.m2\repository\org\objenesis\objenesis\3.3\objenesis-3.3.jar;C:\Users\Wency\.m2\repository\org\springframework\boot\spring-boot-starter-test\3.5.8\spring-boot-starter-test-3.5.8.jar;C:\Users\Wency\.m2\repository\org\springframework\boot\spring-boot-test\3.5.8\spring-boot-test-3.5.8.jar;C:\Users\Wency\.m2\repository\org\springframework\boot\spring-boot-test-autoconfigure\3.5.8\spring-boot-test-autoconfigure-3.5.8.jar;C:\Users\Wency\.m2\repository\com\jayway\jsonpath\json-path\2.9.0\json-path-2.9.0.jar;C:\Users\Wency\.m2\repository\jakarta\xml\bind\jakarta.xml.bind-api\4.0.4\jakarta.xml.bind-api-4.0.4.jar;C:\Users\Wency\.m2\repository\jakarta\activation\jakarta.activation-api\2.1.4\jakarta.activation-api-2.1.4.jar;C:\Users\Wency\.m2\repository\net\minidev\json-smart\2.5.2\json-smart-2.5.2.jar;C:\Users\Wency\.m2\repository\net\minidev\accessors-smart\2.5.2\accessors-smart-2.5.2.jar;C:\Users\Wency\.m2\repository\org\ow2\asm\asm\9.7.1\asm-9.7.1.jar;C:\Users\Wency\.m2\repository\org\assertj\assertj-core\3.27.6\assertj-core-3.27.6.jar;C:\Users\Wency\.m2\repository\org\awaitility\awaitility\4.2.2\awaitility-4.2.2.jar;C:\Users\Wency\.m2\repository\org\hamcrest\hamcrest\3.0\hamcrest-3.0.jar;C:\Users\Wency\.m2\repository\org\junit\jupiter\junit-jupiter\5.12.2\junit-jupiter-5.12.2.jar;C:\Users\Wency\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.12.2\junit-jupiter-api-5.12.2.jar;C:\Users\Wency\.m2\repository\org\opentest4j\opentest4j\1.3.0\opentest4j-1.3.0.jar;C:\Users\Wency\.m2\repository\org\junit\platform\junit-platform-commons\1.12.2\junit-platform-commons-1.12.2.jar;C:\Users\Wency\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\Wency\.m2\repository\org\junit\jupiter\junit-jupiter-params\5.12.2\junit-jupiter-params-5.12.2.jar;C:\Users\Wency\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.12.2\junit-jupiter-engine-5.12.2.jar;C:\Users\Wency\.m2\repository\org\junit\platform\junit-platform-engine\1.12.2\junit-platform-engine-1.12.2.jar;C:\Users\Wency\.m2\repository\org\mockito\mockito-junit-jupiter\5.22.0\mockito-junit-jupiter-5.22.0.jar;C:\Users\Wency\.m2\repository\org\skyscreamer\jsonassert\1.5.3\jsonassert-1.5.3.jar;C:\Users\Wency\.m2\repository\com\vaadin\external\google\android-json\0.0.20131108.vaadin1\android-json-0.0.20131108.vaadin1.jar;C:\Users\Wency\.m2\repository\org\springframework\spring-core\6.2.14\spring-core-6.2.14.jar;C:\Users\Wency\.m2\repository\org\springframework\spring-jcl\6.2.14\spring-jcl-6.2.14.jar;C:\Users\Wency\.m2\repository\org\springframework\spring-test\6.2.14\spring-test-6.2.14.jar;C:\Users\Wency\.m2\repository\org\xmlunit\xmlunit-core\2.10.4\xmlunit-core-2.10.4.jar;"/>
     <property name="sun.cpu.endian" value="little"/>
     <property name="user.home" value="C:\Users\Wency"/>
@@ -31,7 +31,7 @@
     <property name="line.separator" value="&#10;"/>
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
     <property name="java.specification.name" value="Java Platform API Specification"/>
-    <property name="surefire.real.class.path" value="C:\Users\Wency\AppData\Local\Temp\surefire2564102448666033486\surefirebooter-20261026184533973_3.jar"/>
+    <property name="surefire.real.class.path" value="C:\Users\Wency\AppData\Local\Temp\surefire1512374898968706357\surefirebooter-20261107013206287_3.jar"/>
     <property name="user.script" value=""/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
     <property name="java.runtime.version" value="22.0.2+9-70"/>
@@ -41,6 +41,7 @@
     <property name="os.version" value="10.0"/>
     <property name="java.runtime.name" value="Java(TM) SE Runtime Environment"/>
     <property name="file.encoding" value="UTF-8"/>
+    <property name="surefire.failIfNoSpecifiedTests" value="false"/>
     <property name="java.vm.name" value="Java HotSpot(TM) 64-Bit Server VM"/>
     <property name="localRepository" value="C:\Users\Wency\.m2\repository"/>
     <property name="java.vendor.url.bug" value="https://bugreport.java.com/bugreport/"/>
@@ -51,7 +52,7 @@
     <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
     <property name="sun.os.patch.level" value=""/>
     <property name="native.encoding" value="Cp1252"/>
-    <property name="java.library.path" value="C:\Program Files\Java\jdk-22\bin;C:\Windows\Sun\Java\bin;C:\Windows\system32;C:\Windows;C:\Users\Wency\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\local\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Users\Wency\bin;C:\Program Files\Eclipse Adoptium\jdk-21.0.10.7-hotspot\bin;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0;C:\Windows\System32\OpenSSH;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit;C:\Program Files\dotnet;C:\Program Files\Microsoft SQL Server\110\Tools\Binn;C:\Program Files (x86)\Microsoft SQL Server\110\Tools\Binn\ManagementStudio;C:\Program Files (x86)\Microsoft SQL Server\110\Tools\Binn;C:\Program Files (x86)\Microsoft SQL Server\110\DTS\Binn;C:\Program Files\Microsoft SQL Server\110\DTS\Binn;C:\Program Files (x86)\apache-maven-3.9.9\bin;C:\Program Files\Java\jdk-22\bin;C:\Program Files\nodejs;C:\Program Files\Git\cmd;C:\Program Files\NVIDIA Corporation\NVIDIA App\NvDLISR;C:\Program Files\swipl\bin;C:\Program Files\MySQL\MySQL Shell 8.0\bin;C:\Users\Wency\AppData\Local\Microsoft\WindowsApps;C:\Users\Wency\AppData\Local\GitHubDesktop\bin;C:\Users\Wency\AppData\Local\Programs\Microsoft VS Code\bin;C:\Program Files\Flutter\flutter\bin;C:\Users\Wency\AppData\Roaming\npm;C:\Program Files\Git\usr\bin\vendor_perl;C:\Program Files\Git\usr\bin\core_perl;."/>
+    <property name="java.library.path" value="C:\Program Files\Java\jdk-22\bin;C:\Windows\Sun\Java\bin;C:\Windows\system32;C:\Windows;C:\Users\Wency\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\local\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Users\Wency\bin;C:\Program Files\Eclipse Adoptium\jdk-21.0.10.7-hotspot\bin;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0;C:\Windows\System32\OpenSSH;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit;C:\Program Files\dotnet;C:\Program Files\Microsoft SQL Server\110\Tools\Binn;C:\Program Files (x86)\Microsoft SQL Server\110\Tools\Binn\ManagementStudio;C:\Program Files (x86)\Microsoft SQL Server\110\Tools\Binn;C:\Program Files (x86)\Microsoft SQL Server\110\DTS\Binn;C:\Program Files\Microsoft SQL Server\110\DTS\Binn;C:\Program Files (x86)\apache-maven-3.9.9\bin;C:\Program Files\Java\jdk-22\bin;C:\Program Files\nodejs;C:\Program Files\Git\cmd;C:\Program Files\NVIDIA Corporation\NVIDIA App\NvDLISR;C:\Program Files\swipl\bin;C:\Program Files\MySQL\MySQL Shell 8.0\bin;C:\Users\Wency\AppData\Local\Microsoft\WindowsApps;C:\Users\Wency\AppData\Local\GitHubDesktop\bin;C:\Users\Wency\AppData\Local\Programs\Microsoft VS Code\bin;C:\Program Files\Flutter\flutter\bin;C:\Users\Wency\AppData\Roaming\npm;C:\Users\Wency\AppData\Local\Programs\Microsoft VS Code\bin\copilot-shim;C:\Program Files\Git\usr\bin\vendor_perl;C:\Program Files\Git\usr\bin\core_perl;."/>
     <property name="java.vm.info" value="mixed mode, sharing"/>
     <property name="stderr.encoding" value="Cp1252"/>
     <property name="java.vendor" value="Oracle Corporation"/>
@@ -59,14 +60,14 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="66.0"/>
   </properties>
-  <testcase name="testAsignarInsigniaADonador" classname="ar.edu.utn.dds.k3003.catedra.incentivos.IncentivosTest" time="1.088">
-    <system-out><![CDATA[18:45:35.768 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando insignia: id=null, nombre=insignia
-18:45:35.776 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Insignia creada correctamente: id=961b8b3b-bb28-4eef-89b2-fa580bec9757
-18:45:35.812 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando insignia: id=null, nombre=insignia1
-18:45:35.812 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Insignia creada correctamente: id=f2f6bf21-9d8b-4844-82f2-15a486f09acf
-18:45:35.812 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Asignando insignia f2f6bf21-9d8b-4844-82f2-15a486f09acf al donador donador1
-18:45:35.818 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Insignia f2f6bf21-9d8b-4844-82f2-15a486f09acf asignada correctamente al donador donador1
-18:45:35.818 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Consultando insignias del donador donador1
+  <testcase name="testAsignarInsigniaADonador" classname="ar.edu.utn.dds.k3003.catedra.incentivos.IncentivosTest" time="1.502">
+    <system-out><![CDATA[01:32:09.073 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando insignia: id=null, nombre=insignia
+01:32:09.082 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Insignia creada correctamente: id=80932927-d47a-45d6-83ed-740cc55e1236
+01:32:09.130 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando insignia: id=null, nombre=insignia1
+01:32:09.130 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Insignia creada correctamente: id=a51feaa3-2a63-4450-a28c-9eebde268d20
+01:32:09.130 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Asignando insignia a51feaa3-2a63-4450-a28c-9eebde268d20 al donador donador1
+01:32:09.134 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Insignia a51feaa3-2a63-4450-a28c-9eebde268d20 asignada correctamente al donador donador1
+01:32:09.134 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Consultando insignias del donador donador1
 ]]></system-out>
     <system-err><![CDATA[Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
 WARNING: A Java agent has been loaded dynamically (C:\Users\Wency\.m2\repository\net\bytebuddy\byte-buddy-agent\1.17.8\byte-buddy-agent-1.17.8.jar)
@@ -75,74 +76,74 @@ WARNING: If a serviceability tool is not in use, please run with -Djdk.instrumen
 WARNING: Dynamic loading of agents will be disallowed by default in a future release
 ]]></system-err>
   </testcase>
-  <testcase name="testAsignarMisionEnCursoDeDonador" classname="ar.edu.utn.dds.k3003.catedra.incentivos.IncentivosTest" time="0.009">
-    <system-out><![CDATA[18:45:35.860 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando insignia: id=null, nombre=insignia
-18:45:35.861 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Insignia creada correctamente: id=35faa635-4e5e-4d78-9f1b-6844f8f0e13d
-18:45:35.861 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando misión: id=null, nombre=mision1
-18:45:35.863 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Misión creada correctamente: id=f5aa7f6d-8e67-4acc-a391-ea916040ba61
-18:45:35.863 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Asignando misión f5aa7f6d-8e67-4acc-a391-ea916040ba61 al donador donador1
-18:45:35.864 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Misión f5aa7f6d-8e67-4acc-a391-ea916040ba61 asignada correctamente al donador donador1
-18:45:35.864 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Consultando misión actual del donador donador1
+  <testcase name="testAsignarMisionEnCursoDeDonador" classname="ar.edu.utn.dds.k3003.catedra.incentivos.IncentivosTest" time="0.007">
+    <system-out><![CDATA[01:32:09.172 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando insignia: id=null, nombre=insignia
+01:32:09.172 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Insignia creada correctamente: id=05d2dc93-411b-48cc-aa4c-7aa6a0700876
+01:32:09.172 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando misión: id=null, nombre=mision1
+01:32:09.174 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Misión creada correctamente: id=34a45862-b4f6-4c0a-8ac2-a4c1d8ff05ab
+01:32:09.174 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Asignando misión 34a45862-b4f6-4c0a-8ac2-a4c1d8ff05ab al donador donador1
+01:32:09.174 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Misión 34a45862-b4f6-4c0a-8ac2-a4c1d8ff05ab asignada correctamente al donador donador1
+01:32:09.174 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Consultando misión actual del donador donador1
 ]]></system-out>
   </testcase>
-  <testcase name="testAgregarInsigniaFallido" classname="ar.edu.utn.dds.k3003.catedra.incentivos.IncentivosTest" time="0.005">
-    <system-out><![CDATA[18:45:35.869 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando insignia: id=null, nombre=insignia
-18:45:35.870 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Insignia creada correctamente: id=2a457960-43f1-4499-a24d-c430d1df4789
-18:45:35.871 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando insignia: id=null, nombre=null
-18:45:35.871 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando insignia: id=null, nombre=insignia1
-18:45:35.871 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Insignia creada correctamente: id=efebb172-a9e1-4833-b8c9-9507bd2a5c47
-18:45:35.872 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando insignia: id=efebb172-a9e1-4833-b8c9-9507bd2a5c47, nombre=insignia1
+  <testcase name="testAgregarInsigniaFallido" classname="ar.edu.utn.dds.k3003.catedra.incentivos.IncentivosTest" time="0.004">
+    <system-out><![CDATA[01:32:09.181 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando insignia: id=null, nombre=insignia
+01:32:09.181 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Insignia creada correctamente: id=8d18f838-eb0c-4740-adc8-262a60708920
+01:32:09.182 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando insignia: id=null, nombre=null
+01:32:09.182 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando insignia: id=null, nombre=insignia1
+01:32:09.182 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Insignia creada correctamente: id=647a508e-2eff-4628-9f73-e6d0e2a4dc57
+01:32:09.183 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando insignia: id=647a508e-2eff-4628-9f73-e6d0e2a4dc57, nombre=insignia1
 ]]></system-out>
   </testcase>
-  <testcase name="testAgregarMision" classname="ar.edu.utn.dds.k3003.catedra.incentivos.IncentivosTest" time="0.004">
-    <system-out><![CDATA[18:45:35.877 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando insignia: id=null, nombre=insignia
-18:45:35.877 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Insignia creada correctamente: id=091ad8e9-a2d4-40ad-8362-79872b6e096a
-18:45:35.878 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando misión: id=null, nombre=mision1
-18:45:35.878 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Misión creada correctamente: id=a6684382-b916-4ce7-bece-8b79cbe9db70
+  <testcase name="testAgregarMision" classname="ar.edu.utn.dds.k3003.catedra.incentivos.IncentivosTest" time="0.003">
+    <system-out><![CDATA[01:32:09.186 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando insignia: id=null, nombre=insignia
+01:32:09.186 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Insignia creada correctamente: id=d0d2d624-5dad-472e-afd6-f18995eaf5f1
+01:32:09.186 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando misión: id=null, nombre=mision1
+01:32:09.186 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Misión creada correctamente: id=968ddb0b-04c3-4226-b091-89130ae15f45
 ]]></system-out>
   </testcase>
-  <testcase name="testAgregarInsignia" classname="ar.edu.utn.dds.k3003.catedra.incentivos.IncentivosTest" time="0.002">
-    <system-out><![CDATA[18:45:35.880 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando insignia: id=null, nombre=insignia
-18:45:35.880 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Insignia creada correctamente: id=684972fd-681a-4cb4-8ede-429c75e31fc8
-18:45:35.881 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando insignia: id=null, nombre=insignia1
-18:45:35.881 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Insignia creada correctamente: id=392a1687-bed1-42da-a66b-30540ae83e47
+  <testcase name="testAgregarInsignia" classname="ar.edu.utn.dds.k3003.catedra.incentivos.IncentivosTest" time="0.001">
+    <system-out><![CDATA[01:32:09.189 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando insignia: id=null, nombre=insignia
+01:32:09.189 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Insignia creada correctamente: id=4d78ea7d-4951-4639-bc6c-c323a8707e4a
+01:32:09.189 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando insignia: id=null, nombre=insignia1
+01:32:09.189 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Insignia creada correctamente: id=679a4414-8528-4dfc-a4fb-f5f0800dfdc9
 ]]></system-out>
   </testcase>
-  <testcase name="testGetMisionEnCursoDeDonadorFallido" classname="ar.edu.utn.dds.k3003.catedra.incentivos.IncentivosTest" time="0.003">
-    <system-out><![CDATA[18:45:35.883 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando insignia: id=null, nombre=insignia
-18:45:35.884 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Insignia creada correctamente: id=381efde9-2abd-4a9b-9ab5-e2a2a852405c
-18:45:35.884 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Consultando misión actual del donador Inexistente
-18:45:35.885 [main] ERROR ar.edu.utn.dds.k3003.Fachada -- Intento de consultar misión de donador inexistente: Inexistente
+  <testcase name="testGetMisionEnCursoDeDonadorFallido" classname="ar.edu.utn.dds.k3003.catedra.incentivos.IncentivosTest" time="0.002">
+    <system-out><![CDATA[01:32:09.191 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando insignia: id=null, nombre=insignia
+01:32:09.191 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Insignia creada correctamente: id=bec193f6-05d9-4635-bb8f-be07ca08c204
+01:32:09.192 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Consultando misión actual del donador Inexistente
+01:32:09.192 [main] ERROR ar.edu.utn.dds.k3003.Fachada -- Intento de consultar misión de donador inexistente: Inexistente
 ]]></system-out>
   </testcase>
-  <testcase name="testAgregarMisionFallido" classname="ar.edu.utn.dds.k3003.catedra.incentivos.IncentivosTest" time="0.004">
-    <system-out><![CDATA[18:45:35.888 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando insignia: id=null, nombre=insignia
-18:45:35.888 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Insignia creada correctamente: id=5ab8bb36-c8eb-4b1f-9e2d-d71c17aeb2cb
-18:45:35.889 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando misión: id=null, nombre=null
-18:45:35.889 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando misión: id=null, nombre=mision1
-18:45:35.889 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Misión creada correctamente: id=49e79e77-6de7-4cf4-aa00-6f07dcf4a466
-18:45:35.889 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando misión: id=49e79e77-6de7-4cf4-aa00-6f07dcf4a466, nombre=mision1
+  <testcase name="testAgregarMisionFallido" classname="ar.edu.utn.dds.k3003.catedra.incentivos.IncentivosTest" time="0.002">
+    <system-out><![CDATA[01:32:09.194 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando insignia: id=null, nombre=insignia
+01:32:09.194 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Insignia creada correctamente: id=ec772332-2500-4a4b-a1c2-380f07270b3c
+01:32:09.194 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando misión: id=null, nombre=null
+01:32:09.194 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando misión: id=null, nombre=mision1
+01:32:09.194 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Misión creada correctamente: id=2e5eb557-0117-4a90-b7be-9e1a7737874b
+01:32:09.195 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando misión: id=2e5eb557-0117-4a90-b7be-9e1a7737874b, nombre=mision1
 ]]></system-out>
   </testcase>
   <testcase name="testAsignarMisionNull" classname="ar.edu.utn.dds.k3003.catedra.incentivos.IncentivosTest" time="0.002">
-    <system-out><![CDATA[18:45:35.892 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando insignia: id=null, nombre=insignia
-18:45:35.892 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Insignia creada correctamente: id=67a19d19-bbfb-44f2-ba74-f66f73540c5c
-18:45:35.892 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Asignando misión null al donador donador1
-18:45:35.892 [main] ERROR ar.edu.utn.dds.k3003.Fachada -- Se intentó asignar una misión nula al donador donador1
+    <system-out><![CDATA[01:32:09.197 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando insignia: id=null, nombre=insignia
+01:32:09.197 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Insignia creada correctamente: id=fefe1704-10f0-4ebf-b658-dd8fadeb92a0
+01:32:09.197 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Asignando misión null al donador donador1
+01:32:09.197 [main] ERROR ar.edu.utn.dds.k3003.Fachada -- Se intentó asignar una misión nula al donador donador1
 ]]></system-out>
   </testcase>
-  <testcase name="testAsignarInsigniaNullADonador" classname="ar.edu.utn.dds.k3003.catedra.incentivos.IncentivosTest" time="0.003">
-    <system-out><![CDATA[18:45:35.895 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando insignia: id=null, nombre=insignia
-18:45:35.896 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Insignia creada correctamente: id=8136a3fd-0bef-48e0-9472-f559eadadd8a
-18:45:35.896 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Asignando insignia null al donador 1
-18:45:35.896 [main] ERROR ar.edu.utn.dds.k3003.Fachada -- Se intentó asignar una insignia nula al donador 1
+  <testcase name="testAsignarInsigniaNullADonador" classname="ar.edu.utn.dds.k3003.catedra.incentivos.IncentivosTest" time="0.002">
+    <system-out><![CDATA[01:32:09.200 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando insignia: id=null, nombre=insignia
+01:32:09.200 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Insignia creada correctamente: id=b36b5ad6-a412-4388-a94d-8104ce279dc2
+01:32:09.201 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Asignando insignia null al donador 1
+01:32:09.201 [main] ERROR ar.edu.utn.dds.k3003.Fachada -- Se intentó asignar una insignia nula al donador 1
 ]]></system-out>
   </testcase>
-  <testcase name="testGetInsigniasDeDonadorInexistente" classname="ar.edu.utn.dds.k3003.catedra.incentivos.IncentivosTest" time="0.003">
-    <system-out><![CDATA[18:45:35.898 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando insignia: id=null, nombre=insignia
-18:45:35.899 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Insignia creada correctamente: id=a153dbeb-8583-4c16-90e2-294422b95768
-18:45:35.899 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Consultando insignias del donador Inexistente
-18:45:35.900 [main] ERROR ar.edu.utn.dds.k3003.Fachada -- Intento de consultar insignias de donador inexistente: Inexistente
+  <testcase name="testGetInsigniasDeDonadorInexistente" classname="ar.edu.utn.dds.k3003.catedra.incentivos.IncentivosTest" time="0.002">
+    <system-out><![CDATA[01:32:09.203 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Creando insignia: id=null, nombre=insignia
+01:32:09.203 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Insignia creada correctamente: id=6fe3e5cc-a2b6-4818-bea6-4268597a0449
+01:32:09.203 [main] INFO ar.edu.utn.dds.k3003.Fachada -- Consultando insignias del donador Inexistente
+01:32:09.204 [main] ERROR ar.edu.utn.dds.k3003.Fachada -- Intento de consultar insignias de donador inexistente: Inexistente
 ]]></system-out>
   </testcase>
 </testsuite>
