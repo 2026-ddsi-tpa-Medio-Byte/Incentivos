@@ -250,7 +250,9 @@
                   "",
                   "const k = 'reintento_estado0';",
                   "const i = Number(pm.collectionVariables.get(k) || 0);",
-                  "if ([404, 429, 502, 503].includes(pm.response.code) && i < 5) {",
+                  "let incompleto = false;",
+                  "try { const b = pm.response.json(); incompleto = !!(b && b.fuentes && (!b.fuentes.incentivos || !b.fuentes.donadores)); } catch (e) {}",
+                  "if (([404, 429, 502, 503].includes(pm.response.code) || incompleto) && i < 6) {",
                   "  pm.collectionVariables.set(k, i + 1);",
                   "  console.log('modelo de lectura todavía sin datos (' + pm.response.code + '), reintento ' + (i + 1) + ' (consistencia eventual)');",
                   "  setTimeout(() => {}, 3000);",
@@ -1579,7 +1581,9 @@
                   "",
                   "const k = 'reintento_ficha';",
                   "const i = Number(pm.collectionVariables.get(k) || 0);",
-                  "if ([404, 429, 502, 503].includes(pm.response.code) && i < 5) {",
+                  "let incompleto = false;",
+                  "try { const b = pm.response.json(); incompleto = !!(b && b.fuentes && (!b.fuentes.incentivos || !b.fuentes.donadores)); } catch (e) {}",
+                  "if (([404, 429, 502, 503].includes(pm.response.code) || incompleto) && i < 6) {",
                   "  pm.collectionVariables.set(k, i + 1);",
                   "  console.log('modelo de lectura todavía sin datos (' + pm.response.code + '), reintento ' + (i + 1) + ' (consistencia eventual)');",
                   "  setTimeout(() => {}, 3000);",
@@ -1588,6 +1592,16 @@
                   "  pm.collectionVariables.unset(k);",
                   "  pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
                   "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Consistencia eventual: se da tiempo a que lleguen los eventos de los flujos anteriores.",
+                  "if (!pm.collectionVariables.get(\"reintento_ficha\")) { console.log(\"esperando 8 s a que el modelo de lectura procese los eventos\"); setTimeout(() => {}, 8000); }"
                 ]
               }
             }
@@ -1633,7 +1647,9 @@
                   "",
                   "const k = 'reintento_urgentes';",
                   "const i = Number(pm.collectionVariables.get(k) || 0);",
-                  "if ([404, 429, 502, 503].includes(pm.response.code) && i < 5) {",
+                  "let incompleto = false;",
+                  "try { const b = pm.response.json(); incompleto = !!(b && b.fuentes && (!b.fuentes.incentivos || !b.fuentes.donadores)); } catch (e) {}",
+                  "if (([404, 429, 502, 503].includes(pm.response.code) || incompleto) && i < 6) {",
                   "  pm.collectionVariables.set(k, i + 1);",
                   "  console.log('modelo de lectura todavía sin datos (' + pm.response.code + '), reintento ' + (i + 1) + ' (consistencia eventual)');",
                   "  setTimeout(() => {}, 3000);",
@@ -1687,7 +1703,9 @@
                   "",
                   "const k = 'reintento_depositos';",
                   "const i = Number(pm.collectionVariables.get(k) || 0);",
-                  "if ([404, 429, 502, 503].includes(pm.response.code) && i < 5) {",
+                  "let incompleto = false;",
+                  "try { const b = pm.response.json(); incompleto = !!(b && b.fuentes && (!b.fuentes.incentivos || !b.fuentes.donadores)); } catch (e) {}",
+                  "if (([404, 429, 502, 503].includes(pm.response.code) || incompleto) && i < 6) {",
                   "  pm.collectionVariables.set(k, i + 1);",
                   "  console.log('modelo de lectura todavía sin datos (' + pm.response.code + '), reintento ' + (i + 1) + ' (consistencia eventual)');",
                   "  setTimeout(() => {}, 3000);",
@@ -1734,7 +1752,9 @@
                   "",
                   "const k = 'reintento_calidad';",
                   "const i = Number(pm.collectionVariables.get(k) || 0);",
-                  "if ([404, 429, 502, 503].includes(pm.response.code) && i < 5) {",
+                  "let incompleto = false;",
+                  "try { const b = pm.response.json(); incompleto = !!(b && b.fuentes && (!b.fuentes.incentivos || !b.fuentes.donadores)); } catch (e) {}",
+                  "if (([404, 429, 502, 503].includes(pm.response.code) || incompleto) && i < 6) {",
                   "  pm.collectionVariables.set(k, i + 1);",
                   "  console.log('modelo de lectura todavía sin datos (' + pm.response.code + '), reintento ' + (i + 1) + ' (consistencia eventual)');",
                   "  setTimeout(() => {}, 3000);",
@@ -1781,7 +1801,9 @@
                   "",
                   "const k = 'reintento_estado';",
                   "const i = Number(pm.collectionVariables.get(k) || 0);",
-                  "if ([404, 429, 502, 503].includes(pm.response.code) && i < 5) {",
+                  "let incompleto = false;",
+                  "try { const b = pm.response.json(); incompleto = !!(b && b.fuentes && (!b.fuentes.incentivos || !b.fuentes.donadores)); } catch (e) {}",
+                  "if (([404, 429, 502, 503].includes(pm.response.code) || incompleto) && i < 6) {",
                   "  pm.collectionVariables.set(k, i + 1);",
                   "  console.log('modelo de lectura todavía sin datos (' + pm.response.code + '), reintento ' + (i + 1) + ' (consistencia eventual)');",
                   "  setTimeout(() => {}, 3000);",
