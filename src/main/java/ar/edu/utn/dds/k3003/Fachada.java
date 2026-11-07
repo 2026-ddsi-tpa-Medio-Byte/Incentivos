@@ -409,7 +409,15 @@ public class Fachada implements FachadaIncentivos {
           boolean cumpleMision = misionEvaluatorService.evaluarMision(donadorID, misionActual.tipo());
           log.info("Resultado evaluación misión {} para donador {}: {}", misionActual.id(), donadorID, cumpleMision);
 
-          if (cumpleMision) {
+          if (cumpleMision && yaCompletoLaMision(donadorID, misionActual)) {
+            // La misión sigue siendo la actual después de cumplirla (así la pérdida de progreso
+            // puede revisarla), y el Cron-Job la vuelve a evaluar cada minuto. Sin este corte se
+            // completaba de nuevo en cada pasada: agregaba otra vez la categoría al histórico,
+            // repetía el PATCH a Donadores e inflaba incentivos.misiones.completadas.
+            log.info("El donador {} ya había completado la misión {}: no se vuelve a otorgar",
+                donadorID, misionActual.id());
+            resultado = "mision_ya_completada";
+          } else if (cumpleMision) {
             if (misionActual.insigniaID() != null) {
               Insignia insigniaDeMision = useJpa
                   ? insigniaJpaRepository.findById(misionActual.insigniaID()).orElse(null)
@@ -453,6 +461,34 @@ public class Fachada implements FachadaIncentivos {
         incentivosMetrics.recordDonadorProcesado(resultado, Duration.ofNanos(System.nanoTime() - inicioNanos));
       }
     }
+  }
+
+  /**
+   * Una misión ya está completada si el donador tiene su insignia. Si la misión no otorga
+   * insignia, se toma como completada cuando la última categoría registrada es su categoriaFin.
+   * La pérdida de progreso (que corre antes) retira la insignia y agrega la categoriaInicio, así
+   * que una misión perdida vuelve a poder completarse.
+   */
+  private boolean yaCompletoLaMision(String donadorID, MisionDTO mision) {
+    List<String> insignias;
+    List<CategoriaDonadorEnum> categorias;
+    if (useJpa) {
+      PerfilIncentivos perfil = perfilJpaRepository.findById(donadorID).orElse(null);
+      if (perfil == null) {
+        return false;
+      }
+      insignias = perfil.getInsignias() == null ? List.of()
+          : perfil.getInsignias().stream().map(Insignia::getId).toList();
+      categorias = perfil.getCategorias() == null ? List.of() : perfil.getCategorias();
+    } else {
+      insignias = repoPerfiles.getInsigniasPorDonador().getOrDefault(donadorID, List.of());
+      categorias = repoPerfiles.getCategoriasPorDonador().getOrDefault(donadorID, List.of());
+    }
+    if (mision.insigniaID() != null) {
+      return insignias.contains(mision.insigniaID());
+    }
+    return mision.categoriaFin() != null && !categorias.isEmpty()
+        && categorias.get(categorias.size() - 1) == mision.categoriaFin();
   }
 
   /**

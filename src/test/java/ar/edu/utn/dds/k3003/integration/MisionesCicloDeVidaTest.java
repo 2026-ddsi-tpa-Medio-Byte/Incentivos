@@ -257,6 +257,56 @@ class MisionesCicloDeVidaTest {
   }
 
   /** Confirma la transacción del test para que corran los avisos registrados para después del commit. */
+  @Test
+  void procesarDosVecesUnaMisionCumplidaNoLaVuelveACompletar() {
+    // Lo que hace el Cron-Job: la misión cumplida sigue siendo la actual y se vuelve a evaluar
+    // cada minuto. Antes se completaba en cada pasada (en producción, 238 veces TRANSFORMADOR).
+    String donadorID = "donador-ciclo-repetido";
+    Insignia insignia =
+        insigniaRepository.save(new Insignia("insignia-ciclo-rep", "20 Donaciones", "desc"));
+    Mision mision =
+        misionRepository.save(
+            new Mision(
+                "mision-ciclo-rep",
+                "Donaciones Exitosas",
+                insignia.getId(),
+                CategoriaDonadorEnum.COLABORADOR,
+                CategoriaDonadorEnum.TRANSFORMADOR,
+                TipoMisionEnum.DONACIONES_EXITOSAS));
+    List<DonacionDTO> veinteDonaciones = new ArrayList<>();
+    for (int i = 0; i < 20; i++) {
+      veinteDonaciones.add(donacionAceptada(donadorID, "prod-rep-" + i));
+    }
+    when(fachadaDonaciones.buscarPorDonadorYFechaInicio(eq(donadorID), any()))
+        .thenReturn(veinteDonaciones);
+    fachada.asignarMisionADonador(
+        donadorID,
+        new MisionDTO(
+            mision.getId(),
+            mision.getNombre(),
+            mision.getInsigniaID(),
+            mision.getCategoriaInicio(),
+            mision.getCategoriaFin(),
+            mision.getTipo()));
+
+    fachada.procesarDonador(donadorID);
+    fachada.procesarDonador(donadorID);
+    fachada.procesarDonador(donadorID);
+
+    PerfilIncentivos perfil = perfilRepository.findById(donadorID).orElseThrow();
+    Assertions.assertEquals(
+        1,
+        perfil.getCategorias().stream().filter(c -> c == CategoriaDonadorEnum.TRANSFORMADOR).count(),
+        "La categoriaFin se registra una sola vez");
+    Assertions.assertEquals(
+        1,
+        perfil.getInsignias().stream().filter(i -> i.getId().equals(insignia.getId())).count(),
+        "La insignia se otorga una sola vez");
+    confirmarTransaccion();
+    verify(fachadaDonadoresYEntidades, org.mockito.Mockito.times(1))
+        .modifcarCategoria(donadorID, "TRANSFORMADOR");
+  }
+
   private void confirmarTransaccion() {
     TestTransaction.flagForCommit();
     TestTransaction.end();
